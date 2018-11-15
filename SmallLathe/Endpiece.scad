@@ -1,6 +1,6 @@
 include <../Common/ScrewHoles.scad>
 include <Basic2D.scad>
-include <BrassNut.scad>
+include <../Parts/BrassNut.scad>
 
 $fn = 100;
 
