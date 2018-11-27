@@ -47,7 +47,7 @@ module carriage_bed()
 module carriage()
 {
     carriage_back_offset = rail_width + gib_width;
-    translate([0, -carriage_width/2-carriage_back_offset, 0]) 
+    translate([0, -bed_ways_width/2-carriage_back_offset, 0]) 
     {
         carriage_bed();
 

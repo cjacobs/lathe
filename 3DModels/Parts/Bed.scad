@@ -1,5 +1,5 @@
-include <Basic2D.scad>
-include <Basic3D.scad>
+include <../Common/Basic2D.scad>
+include <../Common/Basic3D.scad>
 
 include <BrassNut.scad>
 
