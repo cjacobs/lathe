@@ -15,9 +15,14 @@ STEP_X = 23
 
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
+
+    
+
+
 class lathe(object):
-    def __init__(self):
+    def __init__(self, steps_per_second):
         self.reset()
+        self.steps_per_second = steps_per_second
 
     def setup(self):
         gpio.setmode(gpio.BCM)
@@ -30,12 +35,27 @@ class lathe(object):
         self.curr_x = 0
         self.curr_y = 0
 
-    def moveto(self, x, y, steps_per_second):
+    def carve_convex(self, contour, l, r, start_y, min_y):
+        y = start_y
+        self.moveto(l, y, self.steps_per_second)
+        while l < r and y > min_y:
+            # update l
+            while contour(l) == y and l < r:
+                l += 1
+                self.moveto(l, y, self.steps_per_second)
+            y += 1
+            
+            x = l
+            while contour(x) < y and x < r:
+                self.moveto(x, y, self.steps_per_second)
+                x += 1
+
+    def moveto(self, x, y):
         dx = x - self.curr_x
         dy = y - self.curr_y
-        self.move(dx, dy, steps_per_second)
+        self.move(dx, dy, self.steps_per_second)
 
-    def move(self, dx, dy, steps_per_second):
+    def move(self, dx, dy):
         if dx == 0 and dy == 0:
             return
         dir_x = 1 if dx > 0 else -1
@@ -45,7 +65,7 @@ class lathe(object):
         dist = math.sqrt(dx*dx + dy*dy)
         gcd = fractions.gcd(max(1, dx), max(1, dy))
         iter = max(1, dx) * max(1, dy) // gcd
-        wait_time = (dist / iter) / steps_per_second
+        wait_time = (dist / iter) / self.steps_per_second
         inc_x = dx // gcd
         inc_y = dy // gcd
         step_count = 1
@@ -94,11 +114,11 @@ if __name__ == '__main__':
     xs = coords[0::2]
     ys = coords[1::2]
     coords = zip(xs, ys)
-    l = lathe()
+    l = lathe(steps_per_second=150.0)
     l.setup()
 
     for x, y in coords:
         print(x, y)
-        l.moveto(x, y, 100.0)
+        l.moveto(x, y)
 
     gpio.cleanup()
