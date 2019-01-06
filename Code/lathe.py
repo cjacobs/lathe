@@ -45,29 +45,25 @@ class lathe(object):
         dist = math.sqrt(dx*dx + dy*dy)
         gcd = fractions.gcd(max(1, dx), max(1, dy))
         iter = max(1, dx) * max(1, dy) // gcd
-        print("print dx: {}, dy: {}, gcd: {}, iter: {}, dist: {}".format(dx, dy, gcd, iter, dist))
         wait_time = (dist / iter) / steps_per_second
-        inc_x = dy // gcd
-        inc_y = dx // gcd
-        print("inc_x: {}, inc_y: {}".format(inc_x, inc_y))
+        inc_x = dx // gcd
+        inc_y = dy // gcd
         step_count = 1
-        ix = inc_x-step_count
-        iy = inc_y-step_count
+        ix = 0
+        iy = 0
         for i in range(iter):
-            if ix >= inc_x:
-                ix -= inc_x
-                self.step_x(dir_x * step_count)
-                print("  xpos: {}".format(self.curr_x))
-            if iy >= inc_y:
-                iy -= inc_y
-                self.step_y(dir_y * step_count)
-                print("  ypos: {}".format(self.curr_y))
-            
-            ix += step_count
-            iy += step_count
-            
-            print("  pos: ({}, {})".format(self.curr_x, self.curr_y))
-            time.sleep(wait_time)
+            ix -= dx
+            iy -= dy
+
+            while ix < 0 or iy < 0:
+                if ix < 0:
+                    ix += iter
+                    self.step_x(dir_x * 1)
+                if iy < 0:
+                    iy += iter
+                    self.step_y(dir_y * 1)
+                
+                time.sleep(wait_time)
 
     def step_x(self, count):
         self.set_x_dir(1 if count > 0 else 0)
