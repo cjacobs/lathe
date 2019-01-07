@@ -2,12 +2,15 @@
 
 # Stepper motor control with A4988 drivers
 
+import argparse
 import fractions
 import math
 import sys
 import time
 
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
+
+ENABLE = 4
 
 DIR_Y = 27
 STEP_Y = 17
@@ -18,17 +21,35 @@ STEP_X = 23
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
 
+def pairs(l):
+    a = l[0::2]
+    b = l[1::2]
+    return zip(a,b)
+
 class lathe(object):
     def __init__(self, steps_per_second):
         self.reset()
+        self.setup()
+        self.disable()
         self.steps_per_second = steps_per_second
+
+    def __del__(self):
+        self.disable()
+        gpio.cleanup()
 
     def setup(self):
         gpio.setmode(gpio.BCM)
+        gpio.setup(ENABLE, gpio.OUT)
         gpio.setup(DIR_X, gpio.OUT)
         gpio.setup(STEP_X, gpio.OUT)
         gpio.setup(DIR_Y, gpio.OUT)
         gpio.setup(STEP_Y, gpio.OUT)
+
+    def enable(self):
+        gpio.output(ENABLE, gpio.LOW)
+
+    def disable(self):
+        gpio.output(ENABLE, gpio.HIGH)
 
     def reset(self):
         self.curr_x = 0
@@ -110,7 +131,13 @@ class lathe(object):
             r = x
 
             if x+1 < old_r:
-                extra_segments += [(x+1, old_r, y, min_y)]
+                ## don't add segment if it's going to be empty
+                ok = False
+                for xx in range(x+1, old_r):
+                    if math.ceil(contour(xx)) < y:
+                        ok = True
+                if ok:
+                    extra_segments += [(x+1, old_r, y, min_y)]
         
         # Now recursively do the rest
         for args in extra_segments:
@@ -180,22 +207,34 @@ class lathe(object):
 
 
 if __name__ == '__main__':
-    coords = [int(v) for v in sys.argv[1:]]
 
-    xs = coords[0::2]
-    ys = coords[1::2]
-    coords = zip(xs, ys)
-    l = lathe(steps_per_second=0)
-    l.setup()
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('--foo', action='store_true', help='foo help')
+    subparsers = parser.add_subparsers(help='commands', dest='command')
 
-    # for x, y in coords:
-    #     print(x, y)
-    #     l.moveto(x, y)
+    carve_args = subparsers.add_parser('carve', help='carve help')
 
-    halfwidth = 50
-    contour = lambda x: x*x / halfwidth
-    l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
-    # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
-    # l.carve_contour(contour, -75, 10, 15, -5)
+    draw_args = subparsers.add_parser('draw', help='draw help')
+    draw_args.add_argument('coords', type=int, help='coordinates', nargs=argparse.REMAINDER)
 
-    gpio.cleanup()
+    move_args = subparsers.add_parser('move', help='move help')
+    move_args.add_argument('x', type=int, help='x coordinate')
+    move_args.add_argument('y', type=int, help='y coordinate')
+    
+    args = parser.parse_args()
+    print(args)
+
+    l = lathe(steps_per_second=150)
+    if args.command == 'move':
+        l.move(args.x, args.y)
+    elif args.command == 'draw':
+        coords = pairs(args.coords)
+        for x, y in coords:
+            print(x, y)
+            l.moveto(x, y)
+    elif args.command == 'carve':
+        halfwidth = 50
+        contour = lambda x: x*x / halfwidth
+        l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
+        # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
+        # l.carve_contour(contour, -75, 10, 15, -5)
