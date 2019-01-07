@@ -1,8 +1,8 @@
-include <Bed.scad>
-include <Carriage.scad>
-include <Headstock.scad>
-include <SpindleBearing.scad>
-include <Tailstock.scad>
+include <../Parts/Bed.scad>
+include <../Parts/Carriage.scad>
+include <../Parts/Headstock.scad>
+include <../Parts/SpindleBearing.scad>
+include <../Parts/Tailstock.scad>
 
 $fn = 40;
 
@@ -25,4 +25,4 @@ module lathe()
 
 
 // Main
-lathe();
+translate([-bed_length/2, 0, 0]) lathe();

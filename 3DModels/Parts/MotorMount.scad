@@ -177,7 +177,7 @@ module tailpiece_mount()
 eps = 0.0125;
 x_spacing = mount_width + eps;
 y_spacing = mount_height + eps;
-// motor_body_mount();
+motor_body_mount();
 
 // translate([0*x_spacing, 0]) motor_bearing_mount();
 // translate([1*x_spacing, 0]) motor_bearing_mount();
@@ -188,4 +188,4 @@ y_spacing = mount_height + eps;
 // translate([2*x_spacing, y_spacing]) motor_back_mount();
 
 // cutout_with_center();
-circle(d=motor_diameter);
+// circle(d=motor_diameter);

@@ -72,7 +72,6 @@ module bed_ways()
             translate([hollow_length/2 + 2*rib_offset + bed_support_thickness/2, -bed_support_width/2 + bed_support_thickness/2, -eps]) cylinder(d=bed_ways_screw_diameter, h=bed_ways_thickness+2*eps);
         }
     }
-
 }
 
 module bed_support()
@@ -147,6 +146,7 @@ module bed_support()
 
 module leadscrew_assembly()
 {
+    // TODO: add pillow blocks
     length_diff = bed_length - leadscrew_length;
     color(stainless) 
     translate([length_diff/2, bed_support_width/2 + leadscrew_offset, leadscrew_height]) rotate([0, 90, 0]) 
@@ -154,15 +154,15 @@ module leadscrew_assembly()
         cylinder(d=leadscrew_diameter, h=leadscrew_length);
         brass_nut();
     }
-
 }
+
+// TODO: add motor
 
 module lathe_bed()
 {
     bed_ways();
     bed_support();
     leadscrew_assembly();
-
 }
 
 // Main
