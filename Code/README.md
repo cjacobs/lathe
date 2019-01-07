@@ -1,2 +1,2 @@
-TODO: arduino code to control motors
+TODO: code to control motors
 
