@@ -10,13 +10,13 @@ import time
 
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
-ENABLE = 4
+ENABLE = 17
 
 DIR_Y = 27
-STEP_Y = 17
+STEP_Y = 22
 
-DIR_X = 24
-STEP_X = 23
+DIR_X = 23
+STEP_X = 24
 
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
@@ -26,7 +26,7 @@ def pairs(l):
     b = l[1::2]
     return zip(a,b)
 
-class lathe(object):
+class Lathe(object):
     def __init__(self, steps_per_second):
         self.reset()
         self.setup()
@@ -35,7 +35,7 @@ class lathe(object):
 
     def __del__(self):
         self.disable()
-        gpio.cleanup()
+        # gpio.cleanup()
 
     def setup(self):
         gpio.setmode(gpio.BCM)
@@ -44,6 +44,8 @@ class lathe(object):
         gpio.setup(STEP_X, gpio.OUT)
         gpio.setup(DIR_Y, gpio.OUT)
         gpio.setup(STEP_Y, gpio.OUT)
+        # gpio.output(STEP_X, gpio.LOW)
+        # gpio.output(STEP_Y, gpio.LOW)
 
     def enable(self):
         gpio.output(ENABLE, gpio.LOW)
@@ -131,7 +133,7 @@ class lathe(object):
             r = x
 
             if x+1 < old_r:
-                ## don't add segment if it's going to be empty
+                # don't add the segment if it's going to be empty
                 ok = False
                 for xx in range(x+1, old_r):
                     if math.ceil(contour(xx)) < y:
@@ -160,7 +162,6 @@ class lathe(object):
         iter = max(1, dx) * max(1, dy) // gcd
         inc_x = dx // gcd
         inc_y = dy // gcd
-        step_count = 1
         ix = 0
         iy = 0
         for i in range(iter):
@@ -209,7 +210,7 @@ class lathe(object):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--foo', action='store_true', help='foo help')
+    parser.add_argument('--speed', type=float, help='steps per second', default=200)
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     carve_args = subparsers.add_parser('carve', help='carve help')
@@ -224,7 +225,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
-    l = lathe(steps_per_second=150)
+    l = Lathe(steps_per_second=args.speed)
+    l.enable()
     if args.command == 'move':
         l.move(args.x, args.y)
     elif args.command == 'draw':
