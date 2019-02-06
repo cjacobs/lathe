@@ -38,6 +38,8 @@ class Lathe(object):
         # gpio.cleanup()
 
     def setup(self):
+        gpio.setwarnings(False)
+    
         gpio.setmode(gpio.BCM)
         gpio.setup(ENABLE, gpio.OUT)
         gpio.setup(DIR_X, gpio.OUT)
@@ -235,7 +237,7 @@ if __name__ == '__main__':
             print(x, y)
             l.moveto(x, y)
     elif args.command == 'carve':
-        halfwidth = 50
+        halfwidth = 200
         contour = lambda x: x*x / halfwidth
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
