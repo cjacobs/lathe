@@ -164,8 +164,8 @@ class Lathe(object):
         dx = abs(dx)
         dy = abs(dy)
 
-        major_dist = math.max(dx, dy)
-        minor_dist = math.min(dx, dy)
+        major_dist = max(dx, dy)
+        minor_dist = min(dx, dy)
         if dx >= dy:
             major_dist = dx
             major_dir = dir_x
