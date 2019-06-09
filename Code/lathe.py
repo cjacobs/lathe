@@ -164,9 +164,6 @@ class Lathe(object):
         dx = abs(dx)
         dy = abs(dy)
 
-        dist = math.sqrt(dx*dx + dy*dy) # used for timing only
-        sleep_time = self.get_wait_time() * (dist/iter)
-
         major_dist = math.max(dx, dy)
         minor_dist = math.min(dx, dy)
         if dx >= dy:
@@ -183,6 +180,9 @@ class Lathe(object):
             minor_dist = dx
             minor_dir = dir_x
             minor_axis = X_AXIS
+
+        dist = math.sqrt(dx*dx + dy*dy) # used for timing only
+        sleep_time = self.get_wait_time() * (dist/major_dist)
 
         err = 0
         for i in range(major_dist):
