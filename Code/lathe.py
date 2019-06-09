@@ -8,6 +8,7 @@ import math
 import sys
 import time
 
+# TODO: if testing, import RPi_fake.GPIO...
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
 ENABLE = 17
