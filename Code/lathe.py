@@ -163,7 +163,7 @@ class Lathe(object):
         dy = abs(dy)
 
         dist = math.sqrt(dx*dx + dy*dy) # used for timing only
-        sleep_time = get_wait_time() * (dist/iter)
+        sleep_time = self.get_wait_time() * (dist/iter)
         
         # assume dx > dy
         iter = dx
