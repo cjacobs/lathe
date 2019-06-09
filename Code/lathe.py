@@ -19,6 +19,8 @@ STEP_Y = 22
 DIR_X = 23
 STEP_X = 24
 
+X_AXIS = 'x'
+Y_AXIS = 'y'
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
 
@@ -163,21 +165,41 @@ class Lathe(object):
         dy = abs(dy)
 
         dist = math.sqrt(dx*dx + dy*dy) # used for timing only
-        # assume dx > dy
-        iter = dx
         sleep_time = self.get_wait_time() * (dist/iter)
-        
-        inc_y = dy
-        iy = 0
-        for i in range(iter):
-            iy -= dy
 
-            self.step_x(dir_x * 1)
-            if iy < 0:
-                iy += dx
-                self.step_y(dir_y * 1)
+        major_dist = math.max(dx, dy)
+        minor_dist = math.min(dx, dy)
+        if dx >= dy:
+            major_dist = dx
+            major_dir = dir_x
+            major_axis = X_AXIS
+            minor_dist = dy
+            minor_dir = dir_y
+            minor_axis = Y_AXIS
+        else:
+            major_dist = dy
+            major_dir = dir_y
+            major_axis = Y_AXIS
+            minor_dist = dx
+            minor_dir = dir_x
+            minor_axis = X_AXIS
+
+        err = 0
+        for i in range(major_dist):
+            err -= minor_dist
+
+            self.step(major_axis, major_dir * 1)
+            if err < 0:
+                err += major_dist
+                self.step(minor_axis, minor_dir * 1)
                 
             time.sleep(sleep_time)
+
+    def step(self, axis, count):
+        if axis == X_AXIS:
+            self.step_x(count)
+        else:
+            self.step_y(count)
 
     def step_x(self, count):
         self.set_x_dir(1 if count > 0 else 0)
