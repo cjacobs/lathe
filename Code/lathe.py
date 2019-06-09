@@ -154,32 +154,30 @@ class Lathe(object):
         self.move(dx, dy)
 
     def move(self, dx, dy):
+        '''Move in a straight line using Bresenham's algorithm'''
         if dx == 0 and dy == 0:
             return
         dir_x = 1 if dx > 0 else -1
         dir_y = 1 if dy > 0 else -1
         dx = abs(dx)
         dy = abs(dy)
-        dist = math.sqrt(dx*dx + dy*dy)
-        gcd = fractions.gcd(max(1, dx), max(1, dy))
-        iter = max(1, dx) * max(1, dy) // gcd
-        inc_x = dx // gcd
-        inc_y = dy // gcd
-        ix = 0
+
+        dist = math.sqrt(dx*dx + dy*dy) # used for timing only
+        sleep_time = get_wait_time() * (dist/iter)
+        
+        # assume dx > dy
+        iter = dx
+        inc_y = dy
         iy = 0
         for i in range(iter):
-            ix -= dx
             iy -= dy
 
-            while ix < 0 or iy < 0:
-                if ix < 0:
-                    ix += iter
-                    self.step_x(dir_x * 1)
-                if iy < 0:
-                    iy += iter
-                    self.step_y(dir_y * 1)
+            self.step_x(dir_x * 1)
+            if iy < 0:
+                iy += dx
+                self.step_y(dir_y * 1)
                 
-                time.sleep(self.get_wait_time() * (dist/iter))
+            time.sleep(sleep_time)
 
     def step_x(self, count):
         self.set_x_dir(1 if count > 0 else 0)
@@ -198,6 +196,7 @@ class Lathe(object):
         gpio.output(DIR_Y, d)
     
     def get_wait_time(self):
+        ''' return the time between steps: 1/steps_per_second'''
         if self.steps_per_second == 0:
             return 0
         
