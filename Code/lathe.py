@@ -226,7 +226,6 @@ class Lathe(object):
         return 1.0 / self.steps_per_second
 
     def pulse(self, pin, count):
-        print("pulse {} x {}".format(pin, count))
         for i in range(count):
             gpio.output(pin, gpio.HIGH)
             gpio.output(pin, gpio.LOW)
