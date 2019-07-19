@@ -12,13 +12,13 @@ import time
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
 # GPIO numbers, not pin numbers
-ENABLE = 17
+ENABLE = 22
 
+STEP_Y = 17
 DIR_Y = 27
-STEP_Y = 22
 
-DIR_X = 23
-STEP_X = 24
+STEP_X = 23
+DIR_X = 24
 
 X_AXIS = 'x'
 Y_AXIS = 'y'
