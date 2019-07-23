@@ -30,10 +30,13 @@ def init():
 
 def loop():
     while True:
-        button_state = gpio.input(STEP_L)
-        if not button_state:
-            print("X")
-
+        step_l = gpio.input(STEP_L)
+        dir_l = gpio.input(DIR_L)
+        switch_l = gpio.input(SWITCH_L)
+        step_r = gpio.input(STEP_R)
+        dir_r = gpio.input(DIR_R)
+        switch_r = gpio.input(SWITCH_R)
+        print("{} {} {} {} {} {}".format(step_l, dir_l, switch_l, step_r, dir_r, switch_r))
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
