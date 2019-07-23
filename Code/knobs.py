@@ -10,23 +10,23 @@ import time
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
 # GPIO numbers, not pin numbers
-STEP_L = 5 # brown
-DIR_L = 6 # red
-SWITCH_L = 13 # gray
+STEP_L = 12 # blue
+DIR_L = 16 # purple
+SWITCH_L = 26 # orange
 
-STEP_R = 12 # blue
-DIR_R = 16 # purple
-SWITCH_R = 26 # orange
+STEP_R = 5 # brown
+DIR_R = 6 # red
+SWITCH_R = 13 # gray
 
 
 def init():
     gpio.setmode(gpio.BCM)
-    gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-    gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-    gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-    gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-    gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-    gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
 def loop():
     while True:
