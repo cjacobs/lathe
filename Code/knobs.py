@@ -21,12 +21,12 @@ SWITCH_R = 26 # orange
 
 def init():
     gpio.setmode(gpio.BCM)
-    gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_UP)
-    gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_UP)
-    gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_UP)
-    gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_UP)
-    gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
-    gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
+    gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+    gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_DOWN)
 
 def loop():
     while True:
@@ -37,6 +37,8 @@ def loop():
         dir_r = gpio.input(DIR_R)
         switch_r = gpio.input(SWITCH_R)
         print("{} {} {} {} {} {}".format(step_l, dir_l, switch_l, step_r, dir_r, switch_r))
+        time.sleep(0.001)
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
