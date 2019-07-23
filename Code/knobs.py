@@ -30,7 +30,7 @@ def init():
 
 def loop():
     while True:
-        button_state = GPIO.input(STEP_L)
+        button_state = gpio.input(STEP_L)
         if not button_state:
             print("X")
 
