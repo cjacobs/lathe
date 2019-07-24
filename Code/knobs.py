@@ -97,23 +97,19 @@ def right_step(new_state):
 
 
 def left_move(dir):
-    print(dir)
     _callbacks['left_move'](dir)
 
 
 def right_move(dir):
-    print(dir)
     _callbacks['right_move'](dir)
 
 
 def left_button_callback(channel):
-    print('button callback for channel {}'.format(channel))
     dir = gpio.input(SWITCH_L)
     _callbacks['left_button'](dir)
 
 
 def right_button_callback(channel):
-    print('button callback for channel {}'.format(channel))
     dir = gpio.input(SWITCH_R)
     _callbacks['right_button'](dir)
 
