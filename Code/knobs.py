@@ -27,30 +27,64 @@ SWITCH_R = 13 # gray
 # when (1, 1) is seen, no output until (0, 0) is seen
 
 # state: last read (step, dir)
-LEFT_STATE = (0, 0)
-RIGHT_STATE = (0, 0)
+LEFT_STATE = (1, 1)
+RIGHT_STATE = (1, 1)
 
 def left_step_callback(channel):
     val = gpio.input(DIR_L)
-    left_step((val, LEFT_STATE[1]))
+    left_step((LEFT_STATE[0], val))
 
 def left_dir_callback(channel):
     val = gpio.input(STEP_L)
-    left_step((LEFT_STATE[0], val))
+    left_step((val, LEFT_STATE[1]))
 
 def right_step_callback(channel):
     val = gpio.input(DIR_R)
-    RIGHT_STEP(val, RIGHT_STATE[1])
+    right_step((RIGHT_STATE[0], val))
 
 def right_dir_callback(channel):
     val = gpio.input(STEP_R)
-    right_step((RIGHT_STATE[0], val))
+    right_step(val, RIGHT_STATE[1])
 
-def left_step(x):
-    print("Left: {}".format(x))
+def left_step(new_state):
+    if LEFT_STATE == (0, 0):
+        if new_state == (0, 1) or new_state == (1, 0):
+            LEFT_STATE = new_state
+    elif LEFT_STATE == (0, 1): 
+        if new_state == (0, 0):
+            LEFT_STATE = new_state
+        elif new_state == (1, 1):
+            print("LEFT")
+            LEFT_STATE = new_state
+    elif LEFT_STATE == (1, 0): 
+        if new_state == (0, 0):
+            LEFT_STATE = new_state
+        elif new_state == (1, 1):
+            print("RIGHT")
+            LEFT_STATE = new_state
+    elif LEFT_STATE == (1, 1):
+        if new_state == (0, 0):
+            LEFT_STATE = new_state
 
-def right_step(x):
-    print("Right: {}".format(x))
+def right_step(new_state):
+    if RIGHT_STATE == (0, 0):
+        if new_state == (0, 1) or new_state == (1, 0):
+            RIGHT_STATE = new_state
+    elif RIGHT_STATE == (0, 1): 
+        if new_state == (0, 0):
+            RIGHT_STATE = new_state
+        elif new_state == (1, 1):
+            print("UP")
+            RIGHT_STATE = new_state
+    elif RIGHT_STATE == (1, 0): 
+        if new_state == (0, 0):
+            RIGHT_STATE = new_state
+        elif new_state == (1, 1):
+            print("DOWN")
+            RIGHT_STATE = new_state
+    elif RIGHT_STATE == (1, 1):
+        if new_state == (0, 0):
+            RIGHT_STATE = new_state
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
