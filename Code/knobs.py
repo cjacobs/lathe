@@ -10,13 +10,13 @@ import time
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
 # GPIO numbers, not pin numbers
-STEP_L = 12 # blue
-DIR_L = 16 # purple
-SWITCH_L = 26 # orange
+STEP_R = 12 # blue
+DIR_R = 16 # purple
+SWITCH_R = 26 # orange
 
-STEP_R = 5 # brown
-DIR_R = 6 # red
-SWITCH_R = 13 # gray
+STEP_L = 5 # brown
+DIR_L = 6 # red
+SWITCH_L = 13 # gray
 
 
 # (step, dir) sequence
@@ -28,7 +28,9 @@ SWITCH_R = 13 # gray
 
 # state: last read (step, dir)
 LEFT_STATE = (1, 1)
+LEFT_VALID = True
 RIGHT_STATE = (1, 1)
+RIGHT_VALID = True
 
 def left_step_callback(channel):
     global LEFT_STATE
@@ -52,6 +54,7 @@ def right_dir_callback(channel):
 
 def left_step(new_state):
     global LEFT_STATE
+    global LEFT_VALID
     print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
         LEFT_VALID = True
