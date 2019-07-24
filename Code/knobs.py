@@ -26,20 +26,31 @@ SWITCH_R = 13 # gray
 # (0, 0) -> (0, 1) -> (1, 1) == right
 # when (1, 1) is seen, no output until (0, 0) is seen
 
+# state: last read (step, dir)
+LEFT_STATE = (0, 0)
+RIGHT_STATE = (0, 0)
 
 def left_step_callback(channel):
-    d = gpio.input(DIR_L)
-    if d:
-        print("LEFT")
-    else:
-        print("RIGHT")
+    val = gpio.input(DIR_L)
+    left_step((val, LEFT_STATE[1]))
+
+def left_dir_callback(channel):
+    val = gpio.input(STEP_L)
+    left_step((LEFT_STATE[0], val))
 
 def right_step_callback(channel):
-    d = gpio.input(DIR_R)
-    if d:
-        print("UP")
-    else:
-        print("DOWN")
+    val = gpio.input(DIR_R)
+    RIGHT_STEP(val, RIGHT_STATE[1])
+
+def right_dir_callback(channel):
+    val = gpio.input(STEP_R)
+    right_step((RIGHT_STATE[0], val))
+
+def left_step(from, to):
+    print("Left: {} {}".format(to[0], to[1]))
+
+def right_step(from, to):
+    print("Right: {} {}".format(to[0], to[1]))
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
@@ -54,13 +65,19 @@ def init():
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
-    gpio.add_event_detect(STEP_L, gpio.FALLING, bouncetime=200)
+    gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=20)
+    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=20)
     gpio.add_event_callback(STEP_L, left_step_callback)
-    gpio.add_event_detect(STEP_R, gpio.FALLING, bouncetime=200)
     gpio.add_event_callback(STEP_R, right_step_callback)
-    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=200)
+    gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=20)
+    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=20)
+    gpio.add_event_callback(DIR_L, left_dir_callback)
+    gpio.add_event_callback(DIR_R, right_dir_callback)
+    
+    
+    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=20)
     gpio.add_event_callback(SWITCH_L, button_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=200)
+    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=20)
     gpio.add_event_callback(SWITCH_R, button_callback)
 
 def loop():
