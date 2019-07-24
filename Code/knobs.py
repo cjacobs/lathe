@@ -52,6 +52,7 @@ def right_dir_callback(channel):
 
 def left_step(new_state):
     global LEFT_STATE
+    print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
         if new_state == (0, 1) or new_state == (1, 0):
             LEFT_STATE = new_state
@@ -73,6 +74,7 @@ def left_step(new_state):
 
 def right_step(new_state):
     global RIGHT_STATE
+    print("R: {} -> {}".format(RIGHT_STATE, new_state))
     if RIGHT_STATE == (0, 0):
         if new_state == (0, 1) or new_state == (1, 0):
             RIGHT_STATE = new_state
