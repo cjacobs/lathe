@@ -124,7 +124,7 @@ def add_knob_callback(event, cb):
     _callbacks[event] = cb
 
 
-def init_knobs(knob_debounce_time, switch_debounce_time):
+def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.setmode(gpio.BCM)
     gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_UP)

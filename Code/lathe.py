@@ -237,19 +237,28 @@ class Lathe(object):
 def run_with_knobs(lathe):
     dist = 1
     def move_l(dir):
+        nonlocal lathe, dist 
         x = dist if dir else -dist
-        l.move(x, 0)
-
+        lathe.move(x, 0)
+        print("move_x {}".format(x))
+              
     def move_r(dir):
+        nonlocal lathe, dist
         y = dist if dir else -dist
-        l.move(0, y)
-
+        lathe.move(0, y)
+        print("move_y {}".format(y))
+              
     def button_l(state):
+        nonlocal dist 
         if state: # button-up
             dist *= 2
             if dist > 16:
                 dist = 1
+            print("Dist: {}".format(dist))
 
+    def button_r(state):
+        pass
+    
     knobs.init_knobs()
     knobs.add_knob_callback('left_move', move_l)
     knobs.add_knob_callback('right_move', move_r)
@@ -293,5 +302,5 @@ if __name__ == '__main__':
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
         # l.carve_contour(contour, -75, 10, 15, -5)
-    elif args.command == 'knobs'
+    elif args.command == 'knobs':
         run_with_knobs(l)
