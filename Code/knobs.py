@@ -31,22 +31,27 @@ LEFT_STATE = (1, 1)
 RIGHT_STATE = (1, 1)
 
 def left_step_callback(channel):
+    global LEFT_STATE
     val = gpio.input(DIR_L)
     left_step((LEFT_STATE[0], val))
 
 def left_dir_callback(channel):
+    global LEFT_STATE
     val = gpio.input(STEP_L)
     left_step((val, LEFT_STATE[1]))
 
 def right_step_callback(channel):
+    global RIGHT_STATE
     val = gpio.input(DIR_R)
     right_step((RIGHT_STATE[0], val))
 
 def right_dir_callback(channel):
+    global RIGHT_STATE
     val = gpio.input(STEP_R)
     right_step(val, RIGHT_STATE[1])
 
 def left_step(new_state):
+    global LEFT_STATE
     if LEFT_STATE == (0, 0):
         if new_state == (0, 1) or new_state == (1, 0):
             LEFT_STATE = new_state
@@ -67,6 +72,7 @@ def left_step(new_state):
             LEFT_STATE = new_state
 
 def right_step(new_state):
+    global RIGHT_STATE
     if RIGHT_STATE == (0, 0):
         if new_state == (0, 1) or new_state == (1, 0):
             RIGHT_STATE = new_state
@@ -131,6 +137,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--speed', type=float, help='steps per second', default=200)
     args = parser.parse_args()
-    print(args)
     init()
     loop()
