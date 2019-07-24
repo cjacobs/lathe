@@ -31,14 +31,14 @@ def left_step_callback(channel):
     d = gpio.input(DIR_L)
     if d:
         print("LEFT")
-    else
+    else:
         print("RIGHT")
 
 def right_step_callback(channel):
     d = gpio.input(DIR_R)
     if d:
         print("UP")
-    else
+    else:
         print("DOWN")
 
 def button_callback(channel):
