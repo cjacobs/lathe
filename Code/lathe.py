@@ -234,8 +234,28 @@ class Lathe(object):
             time.sleep(0.00001)
 
 
-def run_with_knobs():
+def run_with_knobs(lathe):
+    dist = 1
+    def move_l(dir):
+        x = dist if dir else -dist
+        l.move(x, 0)
+
+    def move_r(dir):
+        y = dist if dir else -dist
+        l.move(0, y)
+
+    def button_l(state):
+        if state: # button-up
+            dist *= 2
+            if dist > 16:
+                dist = 1
+
     knobs.init_knobs()
+    knobs.add_knob_callback('left_move', move_l)
+    knobs.add_knob_callback('right_move', move_r)
+    knobs.add_knob_callback('left_button', button_l)
+    knobs.add_knob_callback('right_button', button_r)
+
     while True:
         time.sleep(0.1)
 
@@ -274,4 +294,4 @@ if __name__ == '__main__':
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
         # l.carve_contour(contour, -75, 10, 15, -5)
     elif args.command == 'knobs'
-        run_with_knobs()
+        run_with_knobs(l)
