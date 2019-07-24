@@ -106,24 +106,16 @@ def right_move(dir):
     _callbacks['right_move'](dir)
 
 
-def left_button_down_callback(channel):
+def left_button_callback(channel):
     print('button callback for channel {}'.format(channel))
-    left_button(0)
+    dir = gpio.input(SWITCH_L)
+    _callbacks['left_button'](dir)
 
 
-def left_button_up_callback(channel):
+def right_button_callback(channel):
     print('button callback for channel {}'.format(channel))
-    left_button(1)
-
-
-def right_button_down_callback(channel):
-    print('button callback for channel {}'.format(channel))
-    right_button(0)
-
-
-def right_button_up_callback(channel):
-    print('button callback for channel {}'.format(channel))
-    right_button(1)
+    dir = gpio.input(SWITCH_R)
+    _callbacks['right_button'](dir)
 
 
 def add_knob_callback(event, cb):
@@ -155,14 +147,10 @@ def init_knobs(knob_debounce_time, switch_debounce_time):
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
     
-    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=switch_debounce_time)
-    gpio.add_event_callback(SWITCH_L, left_button_down_callback)
-    gpio.add_event_detect(SWITCH_L, gpio.RISING, bouncetime=switch_debounce_time)
-    gpio.add_event_callback(SWITCH_L, left_button_up_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=switch_debounce_time)
-    gpio.add_event_callback(SWITCH_R, right_button_down_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.RISING, bouncetime=switch_debounce_time)
-    gpio.add_event_callback(SWITCH_R, right_button_up_callback)
+    gpio.add_event_detect(SWITCH_L, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_callback(SWITCH_L, left_button_callback)
+    gpio.add_event_detect(SWITCH_R, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_callback(SWITCH_R, right_button_callback)
 
 def loop():
     while True:
