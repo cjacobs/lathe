@@ -177,8 +177,8 @@ def loop():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('knob_debounce_time', type=int, help='knob debounce time')
-    parser.add_argument('switch_debounce_time', type=int, help='switch debounce time')
+    parser.add_argument('--knob_debounce_time', '-k', type=int, help='knob debounce time', default=1)
+    parser.add_argument('--switch_debounce_time', '-s', type=int, help='switch debounce time', default=10)
     
     args = parser.parse_args()
     init_knobs(args.knob_debounce_time, args.switch_debounce_time)
