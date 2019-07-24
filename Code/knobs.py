@@ -54,23 +54,18 @@ def left_step(new_state):
     global LEFT_STATE
     print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
-        if new_state == (0, 1) or new_state == (1, 0):
-            LEFT_STATE = new_state
+        LEFT_VALID = True
     elif LEFT_STATE == (0, 1): 
-        if new_state == (0, 0):
-            LEFT_STATE = new_state
-        elif new_state == (1, 1):
-            print("LEFT")
-            LEFT_STATE = new_state
+        if new_state == (1, 1):
+            if LEFT_VALID:
+                print("LEFT")
+            LEFT_VALID = False
     elif LEFT_STATE == (1, 0): 
-        if new_state == (0, 0):
-            LEFT_STATE = new_state
-        elif new_state == (1, 1):
-            print("RIGHT")
-            LEFT_STATE = new_state
-    elif LEFT_STATE == (1, 1):
-        if new_state == (0, 0):
-            LEFT_STATE = new_state
+        if new_state == (1, 1):
+            if LEFT_VALID:
+                print("RIGHT")
+            LEFT_VALID = False
+    LEFT_STATE = new_state
 
 def right_step(new_state):
     global RIGHT_STATE
