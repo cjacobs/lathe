@@ -46,11 +46,11 @@ def right_dir_callback(channel):
     val = gpio.input(STEP_R)
     right_step((RIGHT_STATE[0], val))
 
-def left_step(from, to):
-    print("Left: {} {}".format(to[0], to[1]))
+def left_step(a, b):
+    print("Left: {}".format(b)
 
-def right_step(from, to):
-    print("Right: {} {}".format(to[0], to[1]))
+def right_step(a, b):
+    print("Right: {}".format(b)
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
