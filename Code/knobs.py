@@ -104,12 +104,12 @@ def init():
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
-    gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=10)
-    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=10)
+    gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=1)
+    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=1)
     gpio.add_event_callback(STEP_L, left_step_callback)
     gpio.add_event_callback(STEP_R, right_step_callback)
-    gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=10)
-    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=10)
+    gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=1)
+    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=1)
     gpio.add_event_callback(DIR_L, left_dir_callback)
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
