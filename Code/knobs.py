@@ -29,11 +29,17 @@ SWITCH_R = 13 # gray
 
 def left_step_callback(channel):
     d = gpio.input(DIR_L)
-    print('step left dir '.format(d))
+    if d:
+        print("LEFT")
+    else
+        print("RIGHT")
 
 def right_step_callback(channel):
     d = gpio.input(DIR_R)
-    print('step right dir '.format(d))
+    if d:
+        print("UP")
+    else
+        print("DOWN")
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
