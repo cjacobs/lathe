@@ -11,6 +11,8 @@ import time
 # TODO: if testing, import RPi_fake.GPIO...
 import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
 
+import knobs
+
 # GPIO numbers, not pin numbers
 ENABLE = 22
 
@@ -232,6 +234,11 @@ class Lathe(object):
             time.sleep(0.00001)
 
 
+def run_with_knobs():
+    knobs.init_knobs()
+    while True:
+        time.sleep(0.1)
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -247,8 +254,9 @@ if __name__ == '__main__':
     move_args.add_argument('x', type=int, help='x coordinate')
     move_args.add_argument('y', type=int, help='y coordinate')
     
+    knobs_args = subparsers.add_parser('knobs', help='knobs help')
+    
     args = parser.parse_args()
-    print(args)
 
     l = Lathe(steps_per_second=args.speed)
     l.enable()
@@ -265,3 +273,5 @@ if __name__ == '__main__':
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
         # l.carve_contour(contour, -75, 10, 15, -5)
+    elif args.command == 'knobs'
+        run_with_knobs()
