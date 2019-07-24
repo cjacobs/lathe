@@ -47,7 +47,9 @@ def init():
     gpio.add_event_callback(STEP_L, step_callback)
     gpio.add_event_detect(STEP_R, gpio.FALLING)
     gpio.add_event_callback(STEP_R, step_callback)
+    gpio.add_event_detect(SWITCH_L, gpio.FALLING)
     gpio.add_event_callback(SWITCH_L, button_callback)
+    gpio.add_event_detect(SWITCH_R, gpio.FALLING)
     gpio.add_event_callback(SWITCH_R, button_callback)
 
 def loop():
