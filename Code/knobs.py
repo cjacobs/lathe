@@ -48,7 +48,7 @@ def right_step_callback(channel):
 def right_dir_callback(channel):
     global RIGHT_STATE
     val = gpio.input(STEP_R)
-    right_step(val, RIGHT_STATE[1])
+    right_step((val, RIGHT_STATE[1]))
 
 def left_step(new_state):
     global LEFT_STATE
