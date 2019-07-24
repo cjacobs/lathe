@@ -27,8 +27,13 @@ SWITCH_R = 13 # gray
 # when (1, 1) is seen, no output until (0, 0) is seen
 
 
-def step_callback(channel):
-    print('step callback for channel {}'.format(channel))
+def left_step_callback(channel):
+    d = gpio.input(DIR_L)
+    print('step left dir '.format(d))
+
+def right_step_callback(channel):
+    d = gpio.input(DIR_R)
+    print('step right dir '.format(d))
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
@@ -44,9 +49,9 @@ def init():
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
     gpio.add_event_detect(STEP_L, gpio.FALLING)
-    gpio.add_event_callback(STEP_L, step_callback)
+    gpio.add_event_callback(STEP_L, left_step_callback)
     gpio.add_event_detect(STEP_R, gpio.FALLING)
-    gpio.add_event_callback(STEP_R, step_callback)
+    gpio.add_event_callback(STEP_R, right_step_callback)
     gpio.add_event_detect(SWITCH_L, gpio.FALLING)
     gpio.add_event_callback(SWITCH_L, button_callback)
     gpio.add_event_detect(SWITCH_R, gpio.FALLING)
