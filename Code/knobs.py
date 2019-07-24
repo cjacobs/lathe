@@ -55,7 +55,7 @@ def right_dir_callback(channel):
 def left_step(new_state):
     global LEFT_STATE
     global LEFT_VALID
-    print("L: {} -> {}".format(LEFT_STATE, new_state))
+    # print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
         LEFT_VALID = True
     elif LEFT_STATE == (0, 1): 
@@ -72,25 +72,22 @@ def left_step(new_state):
 
 def right_step(new_state):
     global RIGHT_STATE
-    print("R: {} -> {}".format(RIGHT_STATE, new_state))
+    global RIGHT_VALID
+    # print("R: {} -> {}".format(RIGHT_STATE, new_state))
     if RIGHT_STATE == (0, 0):
-        if new_state == (0, 1) or new_state == (1, 0):
-            RIGHT_STATE = new_state
+        RIGHT_VALID = True
     elif RIGHT_STATE == (0, 1): 
-        if new_state == (0, 0):
-            RIGHT_STATE = new_state
-        elif new_state == (1, 1):
-            print("UP")
-            RIGHT_STATE = new_state
+        if new_state == (1, 1):
+            if RIGHT_VALID:
+                print("UP")
+            RIGHT_VALID = False
     elif RIGHT_STATE == (1, 0): 
-        if new_state == (0, 0):
-            RIGHT_STATE = new_state
-        elif new_state == (1, 1):
-            print("DOWN")
-            RIGHT_STATE = new_state
-    elif RIGHT_STATE == (1, 1):
-        if new_state == (0, 0):
-            RIGHT_STATE = new_state
+        if new_state == (1, 1):
+            if RIGHT_VALID:
+                print("DOWN")
+            RIGHT_VALID = False
+    RIGHT_STATE = new_state
+
 
 def button_callback(channel):
     print('button callback for channel {}'.format(channel))
@@ -105,19 +102,19 @@ def init():
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
-    gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=20)
-    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=20)
+    gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=10)
+    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=10)
     gpio.add_event_callback(STEP_L, left_step_callback)
     gpio.add_event_callback(STEP_R, right_step_callback)
-    gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=20)
-    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=20)
+    gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=10)
+    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=10)
     gpio.add_event_callback(DIR_L, left_dir_callback)
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
     
-    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=20)
+    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=10)
     gpio.add_event_callback(SWITCH_L, button_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=20)
+    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=10)
     gpio.add_event_callback(SWITCH_R, button_callback)
 
 def loop():
