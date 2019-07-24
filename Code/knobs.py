@@ -48,13 +48,13 @@ def init():
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
-    gpio.add_event_detect(STEP_L, gpio.FALLING)
+    gpio.add_event_detect(STEP_L, gpio.FALLING, bouncetime=200)
     gpio.add_event_callback(STEP_L, left_step_callback)
-    gpio.add_event_detect(STEP_R, gpio.FALLING)
+    gpio.add_event_detect(STEP_R, gpio.FALLING, bouncetime=200)
     gpio.add_event_callback(STEP_R, right_step_callback)
-    gpio.add_event_detect(SWITCH_L, gpio.FALLING)
+    gpio.add_event_detect(SWITCH_L, gpio.FALLING, bouncetime=200)
     gpio.add_event_callback(SWITCH_L, button_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.FALLING)
+    gpio.add_event_detect(SWITCH_R, gpio.FALLING, bouncetime=200)
     gpio.add_event_callback(SWITCH_R, button_callback)
 
 def loop():
