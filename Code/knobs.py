@@ -32,25 +32,30 @@ LEFT_VALID = True
 RIGHT_STATE = (1, 1)
 RIGHT_VALID = True
 
+
 def left_step_callback(channel):
     global LEFT_STATE
     val = gpio.input(DIR_L)
     left_step((LEFT_STATE[0], val))
+
 
 def left_dir_callback(channel):
     global LEFT_STATE
     val = gpio.input(STEP_L)
     left_step((val, LEFT_STATE[1]))
 
+
 def right_step_callback(channel):
     global RIGHT_STATE
     val = gpio.input(DIR_R)
     right_step((RIGHT_STATE[0], val))
 
+
 def right_dir_callback(channel):
     global RIGHT_STATE
     val = gpio.input(STEP_R)
     right_step((val, RIGHT_STATE[1]))
+
 
 def left_step(new_state):
     global LEFT_STATE
@@ -58,17 +63,16 @@ def left_step(new_state):
     # print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
         LEFT_VALID = True
-    elif LEFT_STATE == (0, 1): 
-        if new_state == (1, 1):
+    elif LEFT_STATE == (0, 1) and new_state == (1, 1):
             if LEFT_VALID:
                 print("LEFT")
             LEFT_VALID = False
-    elif LEFT_STATE == (1, 0): 
-        if new_state == (1, 1):
+    elif LEFT_STATE == (1, 0) and new_state == (1, 1):
             if LEFT_VALID:
                 print("RIGHT")
             LEFT_VALID = False
     LEFT_STATE = new_state
+
 
 def right_step(new_state):
     global RIGHT_STATE
@@ -76,13 +80,11 @@ def right_step(new_state):
     # print("R: {} -> {}".format(RIGHT_STATE, new_state))
     if RIGHT_STATE == (0, 0):
         RIGHT_VALID = True
-    elif RIGHT_STATE == (0, 1): 
-        if new_state == (1, 1):
+    elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
             if RIGHT_VALID:
                 print("UP")
             RIGHT_VALID = False
-    elif RIGHT_STATE == (1, 0): 
-        if new_state == (1, 1):
+    elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
             if RIGHT_VALID:
                 print("DOWN")
             RIGHT_VALID = False
