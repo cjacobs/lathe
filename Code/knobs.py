@@ -65,7 +65,7 @@ def right_dir_callback(channel):
 def left_step(new_state):
     global LEFT_STATE
     global LEFT_VALID
-    # print("L: {} -> {}".format(LEFT_STATE, new_state))
+    print("L: {} -> {}".format(LEFT_STATE, new_state))
     if LEFT_STATE == (0, 0):
         LEFT_VALID = True
     elif LEFT_STATE == (0, 1) and new_state == (1, 1):
@@ -134,12 +134,12 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
 
     gpio.add_event_detect(STEP_L, gpio.BOTH, bouncetime=knob_debounce_time)
-    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=knob_debounce_time)
     gpio.add_event_callback(STEP_L, left_step_callback)
-    gpio.add_event_callback(STEP_R, right_step_callback)
     gpio.add_event_detect(DIR_L, gpio.BOTH, bouncetime=knob_debounce_time)
-    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=knob_debounce_time)
     gpio.add_event_callback(DIR_L, left_dir_callback)
+    gpio.add_event_detect(STEP_R, gpio.BOTH, bouncetime=knob_debounce_time)
+    gpio.add_event_callback(STEP_R, right_step_callback)
+    gpio.add_event_detect(DIR_R, gpio.BOTH, bouncetime=knob_debounce_time)
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
     
