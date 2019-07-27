@@ -81,7 +81,6 @@ def left_step(new_state):
 def right_step(new_state):
     global RIGHT_STATE
     global RIGHT_VALID
-    # print("R: {} -> {}".format(RIGHT_STATE, new_state))
     if RIGHT_STATE == (0, 0):
         RIGHT_VALID = True
     elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
