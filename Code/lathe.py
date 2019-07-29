@@ -27,6 +27,8 @@ Y_AXIS = 'y'
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
 
+MAX_DIST_PER_MOVE = 16
+
 def pairs(l):
     a = l[0::2]
     b = l[1::2]
@@ -236,23 +238,27 @@ class Lathe(object):
 
 def run_with_knobs(lathe):
     dist = 1
+    move_amount = (0, 0)
+
     def move_l(dir):
-        nonlocal lathe, dist 
+        nonlocal lathe, dist, move_amount
         x = dist if dir else -dist
-        lathe.move(x, 0)
+        # lathe.move(x, 0)
+        move_amount = (move_amount[0]+x, move_amount[1])
         print("move_x {}".format(x))
               
     def move_r(dir):
-        nonlocal lathe, dist
+        nonlocal lathe, dist, move_amount
         y = dist if dir else -dist
-        lathe.move(0, y)
+        # lathe.move(0, y)
+        move_amount = (move_amount[0], move_amount[1]+ y)
         print("move_y {}".format(y))
               
     def button_l(state):
         nonlocal dist 
         if state: # button-up
             dist *= 2
-            if dist > 16:
+            if dist > MAX_DIST_PER_MOVE:
                 dist = 1
             print("Dist: {}".format(dist))
 
@@ -266,6 +272,11 @@ def run_with_knobs(lathe):
     knobs.add_knob_callback('right_button', button_r)
 
     while True:
+        # get x, y counts and set them to zero
+        x, y = move_amount
+        move_amount = (0, 0)
+        if move_amount[0] or move_amount[1]:
+            lathe.move(x, y)
         time.sleep(0.1)
 
 if __name__ == '__main__':
