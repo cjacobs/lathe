@@ -5,6 +5,7 @@
 import argparse
 import math
 import sys
+import threading
 import time
 
 try:
@@ -30,6 +31,8 @@ Y_AXIS = 'y'
 # Y: forward (-) / back (+)
 
 MAX_DIST_PER_MOVE = 16
+
+lock = threading.Lock()
 
 def pairs(l):
     a = l[0::2]
@@ -240,17 +243,21 @@ def run_with_knobs(lathe):
     dist = 1
     move_amount = (0, 0)
 
-    def move_l(dir):
+    def move_l(amount):
         nonlocal lathe, dist, move_amount
-        x = dist if dir else -dist
-        move_amount = (move_amount[0]+x, move_amount[1])
-        print("move_x {}".format(x))
+        if amount:
+            x = dist * amount
+            with lock:
+                move_amount = (move_amount[0]+x, move_amount[1])
+            print("move_x {}".format(x))
               
     def move_r(dir):
         nonlocal lathe, dist, move_amount
-        y = dist if dir else -dist
-        move_amount = (move_amount[0], move_amount[1]+ y)
-        print("move_y {}".format(y))
+        if amount:
+            y = dist * amount
+            with lock:
+                move_amount = (move_amount[0], move_amount[1]+y)
+            print("move_y {}".format(y))
               
     def button_l(state):
         nonlocal dist 
@@ -270,9 +277,10 @@ def run_with_knobs(lathe):
     knobs.add_knob_callback('right_button', button_r)
 
     while True:
-        # get x, y counts and set them to zero
-        x, y = move_amount
-        move_amount = (0, 0)
+        # TODO: make these 2 lines atomic
+        with lock:
+            x, y = move_amount
+            move_amount = (0, 0)
         if x or y:
             lathe.move(x, y)
         time.sleep(0.001)

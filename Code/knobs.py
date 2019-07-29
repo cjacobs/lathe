@@ -4,6 +4,7 @@
 
 import argparse
 import sys
+import threading
 import time
 
 try:
@@ -30,6 +31,7 @@ SWITCH_L = 13 # gray
 # when (1, 1) is seen, no output until (0, 0) is seen
 
 # state: last read (step, dir)
+lock = threading.Lock()
 LEFT_STATE = (1, 1)
 LEFT_VALID = True
 RIGHT_STATE = (1, 1)
@@ -68,33 +70,41 @@ def right_dir_callback(channel):
 def left_step(new_state):
     global LEFT_STATE
     global LEFT_VALID
-    if LEFT_STATE == (0, 0):
-        LEFT_VALID = True
-    elif LEFT_STATE == (0, 1) and new_state == (1, 1):
-            if LEFT_VALID:
-                left_move(0)
-            LEFT_VALID = False
-    elif LEFT_STATE == (1, 0) and new_state == (1, 1):
-            if LEFT_VALID:
-                left_move(1)
-            LEFT_VALID = False
-    LEFT_STATE = new_state
+    amount = 0
+    with lock:
+        if LEFT_STATE == (0, 0):
+            LEFT_VALID = True
+        elif LEFT_STATE == (0, 1) and new_state == (1, 1):
+                if LEFT_VALID:
+                    amount = -1
+                LEFT_VALID = False
+        elif LEFT_STATE == (1, 0) and new_state == (1, 1):
+                if LEFT_VALID:
+                    amount = 1
+                LEFT_VALID = False
+        LEFT_STATE = new_state
+    if amount:
+        right_move(amount)
 
 
 def right_step(new_state):
     global RIGHT_STATE
     global RIGHT_VALID
-    if RIGHT_STATE == (0, 0):
-        RIGHT_VALID = True
-    elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
-            if RIGHT_VALID:
-                right_move(0)
-            RIGHT_VALID = False
-    elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
-            if RIGHT_VALID:
-                right_move(1)
-            RIGHT_VALID = False
-    RIGHT_STATE = new_state
+    amount = 0
+    with lock:
+        if RIGHT_STATE == (0, 0):
+            RIGHT_VALID = True
+        elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
+                if RIGHT_VALID:
+                    amount = -1
+                RIGHT_VALID = False
+        elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
+                if RIGHT_VALID:
+                    amount = 1
+                RIGHT_VALID = False
+        RIGHT_STATE = new_state
+    if amount:
+        right_move(amount)
 
 
 def left_move(dir):
