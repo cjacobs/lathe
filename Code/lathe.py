@@ -251,7 +251,7 @@ def run_with_knobs(lathe):
                 move_amount = (move_amount[0]+x, move_amount[1])
             print("move_x {}".format(x))
               
-    def move_r(dir):
+    def move_r(amount):
         nonlocal lathe, dist, move_amount
         if amount:
             y = dist * amount
@@ -278,6 +278,7 @@ def run_with_knobs(lathe):
 
     while True:
         # TODO: make these 2 lines atomic
+        x, y = 0, 0
         with lock:
             x, y = move_amount
             move_amount = (0, 0)

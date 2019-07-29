@@ -84,7 +84,7 @@ def left_step(new_state):
                 LEFT_VALID = False
         LEFT_STATE = new_state
     if amount:
-        right_move(amount)
+        left_move(amount)
 
 
 def right_step(new_state):
