@@ -3,14 +3,16 @@
 # Stepper motor control with A4988 drivers
 
 import argparse
-import fractions
 import math
 import sys
 import time
 
-# TODO: if testing, import RPi_fake.GPIO...
-import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
-
+try:
+    # https://pypi.python.org/pypi/RPi.GPIO more info
+    import RPi.GPIO as gpio 
+except:
+    import RPi_fake.GPIO as gpio
+    
 import knobs
 
 # GPIO numbers, not pin numbers
@@ -54,8 +56,6 @@ class Lathe(object):
         gpio.setup(STEP_X, gpio.OUT)
         gpio.setup(DIR_Y, gpio.OUT)
         gpio.setup(STEP_Y, gpio.OUT)
-        # gpio.output(STEP_X, gpio.LOW)
-        # gpio.output(STEP_Y, gpio.LOW)
 
     def enable(self):
         gpio.output(ENABLE, gpio.LOW)
@@ -243,14 +243,12 @@ def run_with_knobs(lathe):
     def move_l(dir):
         nonlocal lathe, dist, move_amount
         x = dist if dir else -dist
-        # lathe.move(x, 0)
         move_amount = (move_amount[0]+x, move_amount[1])
         print("move_x {}".format(x))
               
     def move_r(dir):
         nonlocal lathe, dist, move_amount
         y = dist if dir else -dist
-        # lathe.move(0, y)
         move_amount = (move_amount[0], move_amount[1]+ y)
         print("move_y {}".format(y))
               
@@ -275,14 +273,14 @@ def run_with_knobs(lathe):
         # get x, y counts and set them to zero
         x, y = move_amount
         move_amount = (0, 0)
-        if move_amount[0] or move_amount[1]:
+        if x or y:
             lathe.move(x, y)
-        time.sleep(0.1)
+        time.sleep(0.001)
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--speed', type=float, help='steps per second', default=200)
+    parser.add_argument('--speed', type=float, help='steps per second', default=500)
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     carve_args = subparsers.add_parser('carve', help='carve help')

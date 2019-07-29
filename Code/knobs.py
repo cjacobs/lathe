@@ -6,8 +6,11 @@ import argparse
 import sys
 import time
 
-# TODO: if testing, import RPi_fake.GPIO...
-import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
+try:
+    # https://pypi.python.org/pypi/RPi.GPIO more info
+    import RPi.GPIO as gpio 
+except:
+    import RPi_fake.GPIO as gpio
 
 # GPIO numbers, not pin numbers
 STEP_R = 12 # blue

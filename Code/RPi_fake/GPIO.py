@@ -18,3 +18,6 @@ def output(pin, value):
 
 def cleanup():
     pass
+
+def setwarnings(*args):
+    pass
