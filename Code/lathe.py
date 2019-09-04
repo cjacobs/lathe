@@ -3,26 +3,36 @@
 # Stepper motor control with A4988 drivers
 
 import argparse
-import fractions
 import math
 import sys
+import threading
 import time
 
-# TODO: if testing, import RPi_fake.GPIO...
-import RPi.GPIO as gpio # https://pypi.python.org/pypi/RPi.GPIO more info
+try:
+    # https://pypi.python.org/pypi/RPi.GPIO more info
+    import RPi.GPIO as gpio 
+except:
+    import RPi_fake.GPIO as gpio
+    
+import knobs
 
-ENABLE = 17
+# GPIO numbers, not pin numbers
+ENABLE = 22
 
+STEP_Y = 17
 DIR_Y = 27
-STEP_Y = 22
 
-DIR_X = 23
-STEP_X = 24
+STEP_X = 23
+DIR_X = 24
 
 X_AXIS = 'x'
 Y_AXIS = 'y'
 # X: left (-) / right (+)
 # Y: forward (-) / back (+)
+
+MAX_DIST_PER_MOVE = 16
+
+lock = threading.Lock()
 
 def pairs(l):
     a = l[0::2]
@@ -49,8 +59,6 @@ class Lathe(object):
         gpio.setup(STEP_X, gpio.OUT)
         gpio.setup(DIR_Y, gpio.OUT)
         gpio.setup(STEP_Y, gpio.OUT)
-        # gpio.output(STEP_X, gpio.LOW)
-        # gpio.output(STEP_Y, gpio.LOW)
 
     def enable(self):
         gpio.output(ENABLE, gpio.LOW)
@@ -231,10 +239,57 @@ class Lathe(object):
             time.sleep(0.00001)
 
 
+def run_with_knobs(lathe):
+    dist = 1
+    move_amount = (0, 0)
+
+    def move_l(amount):
+        nonlocal lathe, dist, move_amount
+        if amount:
+            x = dist * amount
+            with lock:
+                move_amount = (move_amount[0]+x, move_amount[1])
+            print("move_x {}".format(x))
+              
+    def move_r(amount):
+        nonlocal lathe, dist, move_amount
+        if amount:
+            y = dist * amount
+            with lock:
+                move_amount = (move_amount[0], move_amount[1]+y)
+            print("move_y {}".format(y))
+              
+    def button_l(state):
+        nonlocal dist 
+        if state: # button-up
+            dist *= 2
+            if dist > MAX_DIST_PER_MOVE:
+                dist = 1
+            print("Dist: {}".format(dist))
+
+    def button_r(state):
+        pass
+    
+    knobs.init_knobs()
+    knobs.add_knob_callback('left_move', move_l)
+    knobs.add_knob_callback('right_move', move_r)
+    knobs.add_knob_callback('left_button', button_l)
+    knobs.add_knob_callback('right_button', button_r)
+
+    while True:
+        # TODO: make these 2 lines atomic
+        x, y = 0, 0
+        with lock:
+            x, y = move_amount
+            move_amount = (0, 0)
+        if x or y:
+            lathe.move(x, y)
+        time.sleep(0.001)
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--speed', type=float, help='steps per second', default=200)
+    parser.add_argument('--speed', type=float, help='steps per second', default=500)
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     carve_args = subparsers.add_parser('carve', help='carve help')
@@ -246,8 +301,9 @@ if __name__ == '__main__':
     move_args.add_argument('x', type=int, help='x coordinate')
     move_args.add_argument('y', type=int, help='y coordinate')
     
+    knobs_args = subparsers.add_parser('knobs', help='knobs help')
+    
     args = parser.parse_args()
-    print(args)
 
     l = Lathe(steps_per_second=args.speed)
     l.enable()
@@ -264,3 +320,5 @@ if __name__ == '__main__':
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
         # l.carve_contour(contour, -75, 10, 15, -5)
+    elif args.command == 'knobs':
+        run_with_knobs(l)
