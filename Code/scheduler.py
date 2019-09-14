@@ -2,49 +2,75 @@
 
 import argparse
 import sys
-import threading
 import time
-import sched
 
+# Constants
+FOREVER = -1
 
-go = False
-def stop():
-    global go
-    go = False
-    
-def do_every(period, end, func, *args):
-    global go
-    go = True
-    timefunc = time.perf_counter
-    
-    count = 0
-    def g_tick():
-        nonlocal count
-        start = timefunc()
-        while True:
-            count += 1
-            now = timefunc()
-            delay = max(start + count*period - now, 0)
-            yield start + count*period, delay
-    g = g_tick()
-
-    while (count < end or end < 0) and go:
-        nexttime, delay = next(g)
-        # while timefunc() < nexttime:
-            # TODO: yield work
-            # time.sleep(tick)
-        time.sleep(delay)
-        func(*args)
-
-
-def test(period):
-    n = 0
-    def count():
-        nonlocal n
-        n += 1
-    
+def accurate_sleep(sec):
     start = time.perf_counter()
-    do_every(period, int(1/period), count)
-    end = time.perf_counter()
-    print("Total time: {}, total steps: {}, steps/s: {}".format(end-start, n, n / (end-start)))
+    end = start + sec
+    slop = 1 / (4*1024*1024)
+    time.sleep(max(0, sec-slop))
+    # time.sleep(max(0, sec))
+    while time.perf_counter() < end:
+        sleep(0)
 
+class scheduler:
+    def __init__(self, period):
+        self.count = 0
+        self.period = period
+        self.timefunc = time.perf_counter
+
+    def run(self, end, func, *args, yield_func=None):
+        self.stop = False
+        if not yield_func:
+            yield_func = time.sleep # time.sleep appears to be more accurate than accurate_sleep. Sigh.
+            # yield_func = accurate_sleep
+    
+        self.count = 0
+        g = self.get_timer(self.period)
+        while (self.count < end or end < 0) and not self.stop:
+            func(*args)
+            count, nexttime, delay = next(g)
+            tick = delay / 8 # ?
+            while self.timefunc() < nexttime:
+                yield_func(delay)
+    
+    def stop(self):
+        self.stop = True
+
+    def get_timer(self, period):
+        def schedule_generator(period):
+            start = self.timefunc()
+            while True:
+                self.count += 1
+                now = self.timefunc()
+                delay = max(start + self.count*period - now, 0)
+                yield self.count, start + self.count*period, delay
+
+        g = schedule_generator(period)
+        return g
+
+if __name__ == '__main__':
+    def test(period, end):
+        s = scheduler(period)
+        curr_count = 0
+        def count():
+            nonlocal curr_count
+            curr_count += 1
+        
+        start = time.perf_counter()
+        s.run(end, count)
+        end = time.perf_counter()
+        real_speed = curr_count / (end-start)
+        real_speed_err = real_speed / (1/period)
+        print("Total time: {}, total steps: {}, steps/s: {}, factor: {}".format(end-start, curr_count, real_speed, real_speed_err))
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--speed', type=float, help='steps per second', default=500)
+    args = parser.parse_args()
+    period = 1 / args.speed
+    end = int(1 / period)
+    test(period, end)

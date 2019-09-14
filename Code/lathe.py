@@ -11,6 +11,8 @@
 # If we wanted to move the carriage 1 in/s, we'd need to run the stepper at 1600 steps/sec.
 # Therefore, our pulse timer must be able to sleep for much less than 1/1000 s.
 
+import scheduler
+
 import argparse
 import math
 import sys
@@ -53,27 +55,26 @@ def pairs(l):
     b = l[1::2]
     return zip(a,b)
 
-class Clock:
+# class Clock:
     
-    def __init__(self, fps):
-        self.start = perf_counter()
-        self.frame_length = 1/fps
+#     def __init__(self, fps):
+#         self.start = perf_counter()
+#         self.frame_length = 1/fps
 
-    @property
-    def tick(self):
-        return int((perf_counter() - self.start) / self.frame_length)
+#     @property
+#     def tick(self):
+#         return int((perf_counter() - self.start) / self.frame_length)
 
-    def sleep(self):
-        r = self.tick + 1
-        while self.tick < r:
-            sleep(1/10000)
+#     def sleep(self):
+#         r = self.tick + 1
+#         while self.tick < r:
+#             sleep(1/10000)
 
 def accurate_sleep(sec):
-    # TODO: use perf_counter as in above example
     start = time.perf_counter()
     end = start + sec
-    slop = 1 / 1024
-    time.sleep(sec-slop)
+    slop = 1 / 4096
+    time.sleep(max(0, sec-slop))
     while perf_counter() < end:
         sleep(0)
 
@@ -339,15 +340,21 @@ def run_with_knobs(lathe):
     knobs.add_knob_callback(knobs.LEFT_BUTTON, button_l)
     knobs.add_knob_callback(knobs.RIGHT_BUTTON, button_r)
 
-    while True:
+    def task_func():
+        nonlocal lock
+        nonlocal move_amount
         x, y = 0, 0
         with lock:
             x, y = move_amount
             move_amount = (0, 0)
+
         if x or y:
             lathe.move(x, y)
         
-        time.sleep(0.001)
+    period = 1 / 16384 # 16k events / s
+    s = scheduler.scheduler(period)
+    s.run(scheduler.FOREVER, task_func)
+
 
 if __name__ == '__main__':
 
