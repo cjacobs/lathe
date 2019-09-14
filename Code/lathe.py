@@ -49,26 +49,25 @@ Y_AXIS = 'y'
 # Y: forward (-) / back (+)
 
 MAX_DIST_PER_MOVE = 16
+MAX_SPEED = 1.0 # in/sec
+
+# Physical properties of the machine:
+STEPS_PER_ROTATION = 200
+MM_PER_ROTATION = 8
+MM_PER_STEP = 1/(MM_PER_ROTATION / STEPS_PER_ROTATION)
+IN_PER_STEP = MM_PER_STEP / 25.4
+
+def clamp_inclusive(x, lo, hi):
+    if x < lo:
+        return lo
+    elif x > hi:
+        return hi
+    return x
 
 def pairs(l):
     a = l[0::2]
     b = l[1::2]
     return zip(a,b)
-
-# class Clock:
-    
-#     def __init__(self, fps):
-#         self.start = perf_counter()
-#         self.frame_length = 1/fps
-
-#     @property
-#     def tick(self):
-#         return int((perf_counter() - self.start) / self.frame_length)
-
-#     def sleep(self):
-#         r = self.tick + 1
-#         while self.tick < r:
-#             sleep(1/10000)
 
 def accurate_sleep(sec):
     start = time.perf_counter()
@@ -285,54 +284,69 @@ def run_with_knobs(lathe):
     SPEED = 1 # knobs affect current speed
 
     # state
+    period = 1 / 16384 # 16k events / s
     mode = ABSOLUTE
-    speed = 1
-    left_speed = 0
-    right_speed = 0
+    abs_speed = 1
+    MAX_SPEED_INDEX = 16
+    left_speed_index = 0
+    right_speed_index = 0
     move_amount = (0, 0)
 
     def move_l(amount):
-        nonlocal lathe, speed, move_amount, mode, left_speed
+        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index
         if mode == ABSOLUTE:
             if amount:
-                x = speed * amount
+                x = abs_speed * amount
                 with lock:
                     move_amount = (move_amount[0]+x, move_amount[1])
                 print("move_x {}".format(x))
         else:
-            # increment/decrement speed
-            pass # ?
+            left_speed_index += amount
+            left_speed_index = clamp_inclusive(left_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
+
+            # compute move amount given left and right speed indices and count
+            left_speed = left_speed_index / MAX_SPEED
+            left_steps_per_sec = left_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
+            left_events_per_step = 1 / (period * left_steps_per_sec)
+        
+            print("left_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(left_speed_index, left_steps_per_sec, left_events_per_step))
                       
     def move_r(amount):
-        nonlocal lathe, speed, move_amount, mode, right_speed
+        nonlocal lathe, abs_speed, move_amount, mode, right_speed
         if mode == ABSOLUTE:
             if amount:
-                y = speed * amount
+                y = abs_speed * amount
                 with lock:
                     move_amount = (move_amount[0], move_amount[1]+y)
                 print("move_y {}".format(y))
         else:
-            # increment/decrement speed
-            pass # ?
+            right_speed_index += amount
+            right_speed_index = clamp_inclusive(right_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
+            right_speed = right_speed_index / MAX_SPEED
+            right_steps_per_sec = right_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
+            right_events_per_step = 1 / (period * right_steps_per_sec)
+            print("right_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(right_speed_index, right_steps_per_sec, right_events_per_step))
 
+    # Change steps / detent in ABSOLUTE mode
     def button_l(state):
-        nonlocal speed
+        nonlocal abs_speed
         if state: # button-up
-            speed *= 2
-            if speed > MAX_DIST_PER_MOVE:
-                speed = 1
-            print("speed: {}".format(speed))
+            abs_speed *= 2
+            if abs_speed > MAX_DIST_PER_MOVE:
+                abs_speed = 1
+            print("speed: {}".format(abs_speed))
 
+    # toggle between ABSOLUTE and SPEED modes
     def button_r(state):
-        nonlocal mode, left_speed, right_speed
+        nonlocal mode, left_speed_index, right_speed_index
         if state: # button-up
             if mode == ABSOLUTE:
                 mode = SPEED
-                left_speed = 0
-                right_speed = 0
+                left_speed_index = 0
+                right_speed_index = 0
             else:
                 mode = ABSOLUTE
-            print("mode: {}".format("ABS" if mode == ABSOLUTE else "rel"))
+            print("mode: {}".format("ABS" if mode == ABSOLUTE else "REL"))
     
     knobs.init_knobs()
     knobs.add_knob_callback(knobs.LEFT_MOVE, move_l)
@@ -340,9 +354,13 @@ def run_with_knobs(lathe):
     knobs.add_knob_callback(knobs.LEFT_BUTTON, button_l)
     knobs.add_knob_callback(knobs.RIGHT_BUTTON, button_r)
 
-    def task_func():
+    def task_func(count):
         nonlocal lock
         nonlocal move_amount
+        nonlocal left_steps_per_sec
+        nonlocal right_steps_per_sec
+
+
         x, y = 0, 0
         with lock:
             x, y = move_amount
@@ -351,7 +369,6 @@ def run_with_knobs(lathe):
         if x or y:
             lathe.move(x, y)
         
-    period = 1 / 16384 # 16k events / s
     s = scheduler.scheduler(period)
     s.run(scheduler.FOREVER, task_func)
 

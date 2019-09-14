@@ -28,10 +28,10 @@ class scheduler:
             yield_func = time.sleep # time.sleep appears to be more accurate than accurate_sleep. Sigh.
             # yield_func = accurate_sleep
     
-        self.count = 0
+        count = 0
         g = self.get_timer(self.period)
         while (self.count < end or end < 0) and not self.stop:
-            func(*args)
+            func(count, *args)
             count, nexttime, delay = next(g)
             tick = delay / 8 # ?
             while self.timefunc() < nexttime:
@@ -43,11 +43,12 @@ class scheduler:
     def get_timer(self, period):
         def schedule_generator(period):
             start = self.timefunc()
+            count = 0
             while True:
-                self.count += 1
+                count += 1
                 now = self.timefunc()
-                delay = max(start + self.count*period - now, 0)
-                yield self.count, start + self.count*period, delay
+                delay = max(start + count*period - now, 0)
+                yield count, start + count*period, delay
 
         g = schedule_generator(period)
         return g
