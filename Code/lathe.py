@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
-# Stepper motor control with A4988 drivers
+#
+# Stepper motor control for the lathe
+#
+
+# There are 2 steppers: X and Y. Each motor takes 200 steps per revolution, and they are each
+# driving a T8 Acme leadscrew (pitch: 2mm, lead: 8mm). The linear motion is 8 mm / rev
+# or (8/200) = 0.04 mm / step, or 0.0016 in / step (1.6 thou per step).
+#
+# If we wanted to move the carriage 1 in/s, we'd need to run the stepper at 1600 steps/sec.
+# Therefore, our pulse timer must be able to sleep for much less than 1/1000 s.
 
 import argparse
 import math
@@ -15,6 +24,13 @@ except:
     import RPi_fake.GPIO as gpio
     
 import knobs
+
+
+# current implementation == absolute
+# velocity mode: turning left decreases rightward speed or increses leftward speed
+#   velocityValue += dir ? 1 : -1
+#   velocity = some exponential function of velocityValue? sgn(velocityValue) * 2^*(velocityValue/scale)
+
 
 # GPIO numbers, not pin numbers
 ENABLE = 22
@@ -32,12 +48,34 @@ Y_AXIS = 'y'
 
 MAX_DIST_PER_MOVE = 16
 
-lock = threading.Lock()
-
 def pairs(l):
     a = l[0::2]
     b = l[1::2]
     return zip(a,b)
+
+class Clock:
+    
+    def __init__(self, fps):
+        self.start = perf_counter()
+        self.frame_length = 1/fps
+
+    @property
+    def tick(self):
+        return int((perf_counter() - self.start) / self.frame_length)
+
+    def sleep(self):
+        r = self.tick + 1
+        while self.tick < r:
+            sleep(1/10000)
+
+def accurate_sleep(sec):
+    # TODO: use perf_counter as in above example
+    start = time.perf_counter()
+    end = start + sec
+    slop = 1 / 1024
+    time.sleep(sec-slop)
+    while perf_counter() < end:
+        sleep(0)
 
 class Lathe(object):
     def __init__(self, steps_per_second):
@@ -201,7 +239,7 @@ class Lathe(object):
                 err += major_dist
                 self.step(minor_axis, minor_dir * 1)
                 
-            time.sleep(sleep_time)
+            accurate_sleep(sleep_time)
 
     def step(self, axis, count):
         if axis == X_AXIS:
@@ -240,50 +278,75 @@ class Lathe(object):
 
 
 def run_with_knobs(lathe):
-    dist = 1
+    lock = threading.Lock()
+    
+    ABSOLUTE = 0 # knobs move a specified amount
+    SPEED = 1 # knobs affect current speed
+
+    # state
+    mode = ABSOLUTE
+    speed = 1
+    left_speed = 0
+    right_speed = 0
     move_amount = (0, 0)
 
     def move_l(amount):
-        nonlocal lathe, dist, move_amount
-        if amount:
-            x = dist * amount
-            with lock:
-                move_amount = (move_amount[0]+x, move_amount[1])
-            print("move_x {}".format(x))
-              
+        nonlocal lathe, speed, move_amount, mode, left_speed
+        if mode == ABSOLUTE:
+            if amount:
+                x = speed * amount
+                with lock:
+                    move_amount = (move_amount[0]+x, move_amount[1])
+                print("move_x {}".format(x))
+        else:
+            # increment/decrement speed
+            pass # ?
+                      
     def move_r(amount):
-        nonlocal lathe, dist, move_amount
-        if amount:
-            y = dist * amount
-            with lock:
-                move_amount = (move_amount[0], move_amount[1]+y)
-            print("move_y {}".format(y))
-              
+        nonlocal lathe, speed, move_amount, mode, right_speed
+        if mode == ABSOLUTE:
+            if amount:
+                y = speed * amount
+                with lock:
+                    move_amount = (move_amount[0], move_amount[1]+y)
+                print("move_y {}".format(y))
+        else:
+            # increment/decrement speed
+            pass # ?
+
     def button_l(state):
-        nonlocal dist 
+        nonlocal speed
         if state: # button-up
-            dist *= 2
-            if dist > MAX_DIST_PER_MOVE:
-                dist = 1
-            print("Dist: {}".format(dist))
+            speed *= 2
+            if speed > MAX_DIST_PER_MOVE:
+                speed = 1
+            print("speed: {}".format(speed))
 
     def button_r(state):
-        pass
+        nonlocal mode, left_speed, right_speed
+        if state: # button-up
+            if mode == ABSOLUTE:
+                mode = SPEED
+                left_speed = 0
+                right_speed = 0
+            else:
+                mode = ABSOLUTE
+            print("mode: {}".format("ABS" if mode == ABSOLUTE else "rel"))
     
     knobs.init_knobs()
-    knobs.add_knob_callback('left_move', move_l)
-    knobs.add_knob_callback('right_move', move_r)
-    knobs.add_knob_callback('left_button', button_l)
-    knobs.add_knob_callback('right_button', button_r)
+    knobs.add_knob_callback(knobs.LEFT_MOVE, move_l)
+    knobs.add_knob_callback(knobs.RIGHT_MOVE, move_r)
+    knobs.add_knob_callback(knobs.LEFT_BUTTON, button_l)
+    knobs.add_knob_callback(knobs.RIGHT_BUTTON, button_r)
 
     while True:
-        # TODO: make these 2 lines atomic
         x, y = 0, 0
         with lock:
             x, y = move_amount
             move_amount = (0, 0)
         if x or y:
             lathe.move(x, y)
+        
         time.sleep(0.001)
 
 if __name__ == '__main__':
@@ -300,6 +363,9 @@ if __name__ == '__main__':
     move_args = subparsers.add_parser('move', help='move help')
     move_args.add_argument('x', type=int, help='x coordinate')
     move_args.add_argument('y', type=int, help='y coordinate')
+    
+    move_args = subparsers.add_parser('circle', help='circle help')
+    move_args.add_argument('r', type=int, help='radius')
     
     knobs_args = subparsers.add_parser('knobs', help='knobs help')
     

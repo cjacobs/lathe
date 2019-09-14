@@ -37,6 +37,12 @@ LEFT_VALID = True
 RIGHT_STATE = (1, 1)
 RIGHT_VALID = True
 
+# Callback ids
+LEFT_MOVE = 'left_move'
+RIGHT_MOVE = 'right_move'
+LEFT_BUTTON = 'left_button'
+RIGHT_BUTTON = 'right_button'
+
 # user callbacks
 def null_cb(arg):
     pass
