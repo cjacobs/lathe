@@ -1,3 +1,5 @@
+include <../Common/Colors.scad>
+
 $fn = 100;
 
 brass_nut_ring_diameter = 22.18;
@@ -14,6 +16,7 @@ module brass_nut()
     shaft_extent_long = 9.9;
 
     eps = 0.0125;
+    color(brass) 
     difference()
     {
         union()

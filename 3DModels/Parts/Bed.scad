@@ -1,5 +1,6 @@
 include <../Common/Basic2D.scad>
 include <../Common/Basic3D.scad>
+include <../Common/Colors.scad>
 
 include <BrassNut.scad>
 
@@ -148,10 +149,12 @@ module leadscrew_assembly()
 {
     // TODO: add pillow blocks
     length_diff = bed_length - leadscrew_length;
-    color(stainless) 
     translate([length_diff/2, bed_support_width/2 + leadscrew_offset, leadscrew_height]) rotate([0, 90, 0]) 
     {
+        color(stainless) 
         cylinder(d=leadscrew_diameter, h=leadscrew_length);
+
+        translate([0, 0, bed_length/5])
         brass_nut();
     }
 }
