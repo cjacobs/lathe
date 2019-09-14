@@ -314,7 +314,7 @@ def run_with_knobs(lathe):
             print("left_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(left_speed_index, left_steps_per_sec, left_events_per_step))
                       
     def move_r(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, right_speed, right_events_per_step
+        nonlocal lathe, abs_speed, move_amount, mode, right_speed_index, right_events_per_step
         if mode == ABSOLUTE:
             if amount:
                 y = abs_speed * amount
@@ -359,9 +359,8 @@ def run_with_knobs(lathe):
     def task_func(count):
         nonlocal lock
         nonlocal move_amount
-        nonlocal left_steps_per_sec
-        nonlocal right_steps_per_sec
-
+        nonlocal left_events_per_step
+        nonlocal right_events_per_step
 
         x, y = 0, 0
         with lock:
