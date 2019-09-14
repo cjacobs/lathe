@@ -74,8 +74,9 @@ def accurate_sleep(sec):
     end = start + sec
     slop = 1 / 4096
     time.sleep(max(0, sec-slop))
-    while perf_counter() < end:
-        sleep(0)
+    while time.perf_counter() < end:
+        time.sleep(0)
+
 
 class Lathe(object):
     def __init__(self, steps_per_second):
@@ -284,7 +285,7 @@ def run_with_knobs(lathe):
     SPEED = 1 # knobs affect current speed
 
     # state
-    period = 1 / 16384 # 16k events / s
+    period = 1 / 8192
     mode = ABSOLUTE
     abs_speed = 1
     MAX_SPEED_INDEX = 16
