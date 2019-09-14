@@ -18,7 +18,6 @@ def accurate_sleep(sec):
 
 class scheduler:
     def __init__(self, period):
-        self.count = 0
         self.period = period
         self.timefunc = time.perf_counter
 
@@ -30,7 +29,7 @@ class scheduler:
     
         count = 0
         g = self.get_timer(self.period)
-        while (self.count < end or end < 0) and not self.stop:
+        while (count < end or end < 0) and not self.stop:
             func(count, *args)
             count, nexttime, delay = next(g)
             tick = delay / 8 # ?
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     def test(period, end):
         s = scheduler(period)
         curr_count = 0
-        def count():
+        def count(x):
             nonlocal curr_count
             curr_count += 1
         
