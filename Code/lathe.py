@@ -291,9 +291,11 @@ def run_with_knobs(lathe):
     left_speed_index = 0
     right_speed_index = 0
     move_amount = (0, 0)
-
+    left_events_per_step = 0
+    right_events_per_step = 0
+    
     def move_l(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index
+        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index, left_events_per_step
         if mode == ABSOLUTE:
             if amount:
                 x = abs_speed * amount
@@ -312,7 +314,7 @@ def run_with_knobs(lathe):
             print("left_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(left_speed_index, left_steps_per_sec, left_events_per_step))
                       
     def move_r(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, right_speed
+        nonlocal lathe, abs_speed, move_amount, mode, right_speed, right_events_per_step
         if mode == ABSOLUTE:
             if amount:
                 y = abs_speed * amount
@@ -338,7 +340,7 @@ def run_with_knobs(lathe):
 
     # toggle between ABSOLUTE and SPEED modes
     def button_r(state):
-        nonlocal mode, left_speed_index, right_speed_index
+        nonlocal mode, left_events_per_step, right_events_per_step
         if state: # button-up
             if mode == ABSOLUTE:
                 mode = SPEED
