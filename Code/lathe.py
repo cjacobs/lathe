@@ -304,7 +304,7 @@ def run_with_knobs(lathe):
                 x = abs_speed * amount
                 with lock:
                     move_amount = (move_amount[0]+x, move_amount[1])
-                print("move_x {}".format(x))
+                print("move_x {} ({})".format(x, move_amount))
         else:
             left_speed_index += amount
             left_speed_index = clamp_inclusive(left_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
@@ -332,7 +332,7 @@ def run_with_knobs(lathe):
                 y = abs_speed * amount
                 with lock:
                     move_amount = (move_amount[0], move_amount[1]+y)
-                print("move_y {}".format(y))
+                print("move_y {} ({})".format(y, move_amount))
         else:
             right_speed_index += amount
             right_speed_index = clamp_inclusive(right_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
