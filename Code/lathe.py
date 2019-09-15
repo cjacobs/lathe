@@ -396,6 +396,7 @@ def run_with_knobs(lathe):
                 y += right_dir
 
         if x or y:
+            print("move {} {}".format(x, y))
             lathe.move(x, y)
         
     s = scheduler.scheduler(period)
