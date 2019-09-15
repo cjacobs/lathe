@@ -54,7 +54,7 @@ MAX_SPEED = 1.0 # in/sec
 # Physical properties of the machine:
 STEPS_PER_ROTATION = 200
 MM_PER_ROTATION = 8
-MM_PER_STEP = 1/(MM_PER_ROTATION / STEPS_PER_ROTATION)
+MM_PER_STEP = MM_PER_ROTATION / STEPS_PER_ROTATION
 IN_PER_STEP = MM_PER_STEP / 25.4
 
 def clamp_inclusive(x, lo, hi):
@@ -292,11 +292,13 @@ def run_with_knobs(lathe):
     left_speed_index = 0
     right_speed_index = 0
     move_amount = (0, 0)
+    left_dir = 1
+    right_dir = 1
     left_events_per_step = 0
     right_events_per_step = 0
     
     def move_l(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index, left_events_per_step
+        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index, left_events_per_step, left_dir
         if mode == ABSOLUTE:
             if amount:
                 x = abs_speed * amount
@@ -308,14 +310,23 @@ def run_with_knobs(lathe):
             left_speed_index = clamp_inclusive(left_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
 
             # compute move amount given left and right speed indices and count
-            left_speed = left_speed_index / MAX_SPEED
+            if left_speed_index < 0:
+                left_dir = -1
+            elif left_speed_index > 0:
+                left_dir = 1
+            else:
+                left_dir = 0
+            left_speed = abs(left_speed_index / MAX_SPEED)
             left_steps_per_sec = left_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
-            left_events_per_step = 1 / (period * left_steps_per_sec)
-        
+            if left_steps_per_sec == 0:
+                left_events_per_step = 0
+            else:
+                left_events_per_step = int(1 / (period * left_steps_per_sec))
+
             print("left_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(left_speed_index, left_steps_per_sec, left_events_per_step))
                       
     def move_r(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, right_speed_index, right_events_per_step
+        nonlocal lathe, abs_speed, move_amount, mode, right_speed_index, right_events_per_step, right_dir
         if mode == ABSOLUTE:
             if amount:
                 y = abs_speed * amount
@@ -325,9 +336,19 @@ def run_with_knobs(lathe):
         else:
             right_speed_index += amount
             right_speed_index = clamp_inclusive(right_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
-            right_speed = right_speed_index / MAX_SPEED
+            if right_speed_index < 0:
+                right_dir = -1
+            elif right_speed_index > 0:
+                right_dir = 1
+            else:
+                right_dir = 0
+            right_speed = abs(right_speed_index / MAX_SPEED)
             right_steps_per_sec = right_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
-            right_events_per_step = 1 / (period * right_steps_per_sec)
+            
+            if right_steps_per_sec == 0:
+                right_events_per_step = 0
+            else:
+                right_events_per_step = int(1 / (period * right_steps_per_sec))
             print("right_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(right_speed_index, right_steps_per_sec, right_events_per_step))
 
     # Change steps / detent in ABSOLUTE mode
@@ -359,14 +380,20 @@ def run_with_knobs(lathe):
 
     def task_func(count):
         nonlocal lock
-        nonlocal move_amount
-        nonlocal left_events_per_step
-        nonlocal right_events_per_step
+        nonlocal mode, move_amount
+        nonlocal left_events_per_step, left_dir
+        nonlocal right_events_per_step, right_dir
 
         x, y = 0, 0
         with lock:
             x, y = move_amount
             move_amount = (0, 0)
+
+        if mode == SPEED:
+            if count % left_events_per_step == 0:
+                x += left_dir
+            if count % right_events_per_step == 0:
+                y += right_dir
 
         if x or y:
             lathe.move(x, y)
