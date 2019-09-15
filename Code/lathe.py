@@ -424,7 +424,9 @@ if __name__ == '__main__':
     knobs_args = subparsers.add_parser('knobs', help='knobs help')
     
     args = parser.parse_args()
-
+    if not args.command:
+        args.command = 'knobs'
+        
     l = Lathe(steps_per_second=args.speed)
     l.enable()
     if args.command == 'move':
