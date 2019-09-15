@@ -53,7 +53,7 @@ MAX_SPEED = 1.0 # in/sec
 
 # Physical properties of the machine:
 STEPS_PER_ROTATION = 200
-MM_PER_ROTATION = 8
+MM_PER_ROTATION = 8.0
 MM_PER_STEP = MM_PER_ROTATION / STEPS_PER_ROTATION
 IN_PER_STEP = MM_PER_STEP / 25.4
 
@@ -392,9 +392,9 @@ def run_with_knobs(lathe):
             move_amount = (0, 0)
 
         if mode == SPEED:
-            if count % left_events_per_step == 0:
+            if left_events_per_step != 0 and count % left_events_per_step == 0:
                 x += left_dir
-            if count % right_events_per_step == 0:
+            if right_events_per_step and count % right_events_per_step == 0:
                 y += right_dir
 
         if x or y:
