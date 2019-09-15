@@ -22,6 +22,7 @@ class scheduler:
         self.timefunc = time.perf_counter
 
     def run(self, end, func, *args, yield_func=None):
+        self.MAXCOUNT = 1 << 31
         self.stop = False
         if not yield_func:
             yield_func = time.sleep # time.sleep appears to be more accurate than accurate_sleep. Sigh.
@@ -46,8 +47,11 @@ class scheduler:
             while True:
                 count += 1
                 now = self.timefunc()
-                delay = max(start + count*period - now, 0)
-                yield count, start + count*period, delay
+                next_time = start + count*period
+                delay = max(start + next_time - now, 0)
+                if count > self.MAXCOUNT:
+                    count = 0
+                yield count, next_time, delay
 
         g = schedule_generator(period)
         return g
