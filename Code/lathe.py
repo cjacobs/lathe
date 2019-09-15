@@ -57,6 +57,7 @@ MM_PER_ROTATION = 8.0
 MM_PER_STEP = MM_PER_ROTATION / STEPS_PER_ROTATION
 IN_PER_STEP = MM_PER_STEP / 25.4
 
+
 def clamp_inclusive(x, lo, hi):
     if x < lo:
         return lo
@@ -64,18 +65,11 @@ def clamp_inclusive(x, lo, hi):
         return hi
     return x
 
+
 def pairs(l):
     a = l[0::2]
     b = l[1::2]
-    return zip(a,b)
-
-def accurate_sleep(sec):
-    start = time.perf_counter()
-    end = start + sec
-    slop = 1 / 4096
-    time.sleep(max(0, sec-slop))
-    while time.perf_counter() < end:
-        time.sleep(0)
+    return zip(a, b)
 
 
 class Lathe(object):
@@ -240,7 +234,7 @@ class Lathe(object):
                 err += major_dist
                 self.step(minor_axis, minor_dir * 1)
                 
-            accurate_sleep(sleep_time)
+            scheduler.accurate_sleep(sleep_time)
 
     def step(self, axis, count):
         if axis == X_AXIS:
@@ -279,79 +273,67 @@ class Lathe(object):
 
 
 def run_with_knobs(lathe):
+    print("Running in interactive mode")
     lock = threading.Lock()
     
+    # mode constants
     ABSOLUTE = 0 # knobs move a specified amount
     SPEED = 1 # knobs affect current speed
 
+    # direction constants
+    LEFT = 0
+    RIGHT = 1
+
+    gamma = 1.5
+    max_speed_index = 16
+    
     # state
     period = 1 / 8192
     mode = ABSOLUTE
     abs_speed = 1
-    MAX_SPEED_INDEX = 16
-    left_speed_index = 0
-    right_speed_index = 0
-    move_amount = (0, 0)
-    left_dir = 1
-    right_dir = 1
-    left_events_per_step = 0
-    right_events_per_step = 0
+    move_amount = [0, 0]
     
-    def move_l(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, left_speed_index, left_events_per_step, left_dir
+    speed_index = [0, 0]
+    motion_dir = [0, 0]
+    events_per_step = [0, 0]
+
+    def move(dir, amount):
+        # dir in [0, 1], 0 == left, 1 == right
         if mode == ABSOLUTE:
             if amount:
-                x = abs_speed * amount
+                val = abs_speed * amount
                 with lock:
-                    move_amount = (move_amount[0]+x, move_amount[1])
-                print("move_x {} ({})".format(x, move_amount))
+                    move_amount[dir] += val
+                print("move {} {} ({})".format(dir, val, move_amount))
         else:
-            left_speed_index += amount
-            left_speed_index = clamp_inclusive(left_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
+
+            speed_index[dir] += amount
+            speed_index[dir] = clamp_inclusive(speed_index[dir], -max_speed_index, max_speed_index)
 
             # compute move amount given left and right speed indices and count
-            if left_speed_index < 0:
-                left_dir = -1
-            elif left_speed_index > 0:
-                left_dir = 1
+            if speed_index[dir] < 0:
+                motion_dir[dir] = -1
+            elif speed_index[dir] > 0:
+                motion_dir[dir] = 1
             else:
-                left_dir = 0
-            left_speed = abs(MAX_SPEED * left_speed_index / MAX_SPEED_INDEX)
-            left_steps_per_sec = left_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
-            if left_steps_per_sec == 0:
-                left_events_per_step = 0
-            else:
-                left_events_per_step = int(1 / (period * left_steps_per_sec))
+                motion_dir[dir] = 0
 
-            print("left_speed_index: {}\tsteps_per_sec: {}\tspeed: {}\tevents_per_step: {}".format(left_speed_index, left_speed, left_steps_per_sec, left_events_per_step))
+            speed = MAX_SPEED * pow(abs(speed_index[dir]) / max_speed_index, gamma)
+            steps_per_sec[dir] = speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
+            if steps_per_sec[dir] == 0:
+                events_per_step[dir] = 0
+            else:
+                events_per_step[dir] = int(1 / (period * steps_per_sec[dir]))
+
+            print("speed_index: {}\tsteps_per_sec: {}\tspeed: {}\tevents_per_step: {}".format(speed_index, speed, steps_per_sec, events_per_step))
+
+    def move_l(amount):
+        move(LEFT, amount)
                       
     def move_r(amount):
-        nonlocal lathe, abs_speed, move_amount, mode, right_speed_index, right_events_per_step, right_dir
-        if mode == ABSOLUTE:
-            if amount:
-                y = abs_speed * amount
-                with lock:
-                    move_amount = (move_amount[0], move_amount[1]+y)
-                print("move_y {} ({})".format(y, move_amount))
-        else:
-            right_speed_index += amount
-            right_speed_index = clamp_inclusive(right_speed_index, -MAX_SPEED_INDEX, MAX_SPEED_INDEX)
-            if right_speed_index < 0:
-                right_dir = -1
-            elif right_speed_index > 0:
-                right_dir = 1
-            else:
-                right_dir = 0
-            right_speed = abs(MAX_SPEED * right_speed_index / MAX_SPEED_INDEX)
-            right_steps_per_sec = right_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
-            
-            if right_steps_per_sec == 0:
-                right_events_per_step = 0
-            else:
-                right_events_per_step = int(1 / (period * right_steps_per_sec))
-            print("right_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(right_speed_index, right_steps_per_sec, right_events_per_step))
+        move(RIGHT, amount)
 
-    # Change steps / detent in ABSOLUTE mode
+    # Change steps per detent in ABSOLUTE mode
     def button_l(state):
         nonlocal abs_speed
         if state: # button-up
@@ -362,12 +344,11 @@ def run_with_knobs(lathe):
 
     # toggle between ABSOLUTE and SPEED modes
     def button_r(state):
-        nonlocal mode, left_events_per_step, right_events_per_step
+        nonlocal mode, speed_index
         if state: # button-up
+            speed_index = [0, 0]
             if mode == ABSOLUTE:
                 mode = SPEED
-                left_speed_index = 0
-                right_speed_index = 0
             else:
                 mode = ABSOLUTE
             print("mode: {}".format("ABS" if mode == ABSOLUTE else "REL"))
@@ -381,8 +362,7 @@ def run_with_knobs(lathe):
     def task_func(count):
         nonlocal lock
         nonlocal mode, move_amount
-        nonlocal left_events_per_step, left_dir
-        nonlocal right_events_per_step, right_dir
+        nonlocal events_per_step, motion_dir
 
         x, y = 0, 0
         with lock:
@@ -390,10 +370,10 @@ def run_with_knobs(lathe):
             move_amount = (0, 0)
 
         if mode == SPEED:
-            if left_events_per_step != 0 and count % left_events_per_step == 0:
-                x += left_dir
-            if right_events_per_step and count % right_events_per_step == 0:
-                y += right_dir
+            if events_per_step[LEFT] != 0 and count % events_per_step[LEFT] == 0:
+                x += motion_dir[LEFT]
+            if events_per_step[RIGHT] != 0 and count % events_per_step[RIGHT] == 0:
+                y += motion_dir[RIGHT]
 
         if x or y:
             lathe.move(x, y)
@@ -408,7 +388,7 @@ if __name__ == '__main__':
     parser.add_argument('--speed', type=float, help='steps per second', default=500)
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
-    carve_args = subparsers.add_parser('carve', help='carve help')
+    knobs_args = subparsers.add_parser('knobs', help='knobs help')
 
     draw_args = subparsers.add_parser('draw', help='draw help')
     draw_args.add_argument('coords', type=int, help='coordinates', nargs=argparse.REMAINDER)
@@ -420,7 +400,7 @@ if __name__ == '__main__':
     move_args = subparsers.add_parser('circle', help='circle help')
     move_args.add_argument('r', type=int, help='radius')
     
-    knobs_args = subparsers.add_parser('knobs', help='knobs help')
+    carve_args = subparsers.add_parser('carve', help='carve help')
     
     args = parser.parse_args()
     if not args.command:
@@ -428,7 +408,10 @@ if __name__ == '__main__':
 
     l = Lathe(steps_per_second=args.speed)
     l.enable()
-    if args.command == 'move':
+
+    if args.command == 'knobs':
+        run_with_knobs(l)
+    elif args.command == 'move':
         l.move(args.x, args.y)
     elif args.command == 'draw':
         coords = pairs(args.coords)
@@ -437,9 +420,7 @@ if __name__ == '__main__':
             l.moveto(x, y)
     elif args.command == 'carve':
         halfwidth = 200
-        contour = lambda x: x*x / halfwidth
+        contour = lambda x: x*x / halfwidth # parabola
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
         # contour = lambda x: (x*x*x + 50*x*x) / (halfwidth*halfwidth)
         # l.carve_contour(contour, -75, 10, 15, -5)
-    elif args.command == 'knobs':
-        run_with_knobs(l)
