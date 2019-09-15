@@ -316,14 +316,14 @@ def run_with_knobs(lathe):
                 left_dir = 1
             else:
                 left_dir = 0
-            left_speed = abs(left_speed_index / MAX_SPEED)
+            left_speed = abs(MAX_SPEED * left_speed_index / MAX_SPEED_INDEX)
             left_steps_per_sec = left_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
             if left_steps_per_sec == 0:
                 left_events_per_step = 0
             else:
                 left_events_per_step = int(1 / (period * left_steps_per_sec))
 
-            print("left_speed_index: {}\tsteps_per_sec: {}\tevents_per_step: {}".format(left_speed_index, left_steps_per_sec, left_events_per_step))
+            print("left_speed_index: {}\tsteps_per_sec: {}\tspeed: {}\tevents_per_step: {}".format(left_speed_index, left_speed, left_steps_per_sec, left_events_per_step))
                       
     def move_r(amount):
         nonlocal lathe, abs_speed, move_amount, mode, right_speed_index, right_events_per_step, right_dir
@@ -342,7 +342,7 @@ def run_with_knobs(lathe):
                 right_dir = 1
             else:
                 right_dir = 0
-            right_speed = abs(right_speed_index / MAX_SPEED)
+            right_speed = abs(MAX_SPEED * right_speed_index / MAX_SPEED_INDEX)
             right_steps_per_sec = right_speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
             
             if right_steps_per_sec == 0:
