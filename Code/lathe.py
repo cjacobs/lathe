@@ -285,7 +285,8 @@ def run_with_knobs(lathe):
     SPEED = 1 # knobs affect current speed
 
     # state
-    period = 1 / 8192
+    period = 1 / 20
+    # period = 1 / 8192
     mode = ABSOLUTE
     abs_speed = 1
     MAX_SPEED_INDEX = 16
@@ -387,6 +388,7 @@ def run_with_knobs(lathe):
         x, y = 0, 0
         with lock:
             x, y = move_amount
+            print("move_amount: {}".format(move_amount))
             move_amount = (0, 0)
 
         if mode == SPEED:
@@ -426,7 +428,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if not args.command:
         args.command = 'knobs'
-        
+
     l = Lathe(steps_per_second=args.speed)
     l.enable()
     if args.command == 'move':
