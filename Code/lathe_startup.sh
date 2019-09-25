@@ -1,5 +1,7 @@
 #! /bin/sh
 
+set -x
+
 ### BEGIN INIT INFO
 # Provides:          noip
 # Required-Start:    $remote_fs $syslog
