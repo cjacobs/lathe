@@ -21,7 +21,7 @@ ExecStop=/usr/bin/killall -9 lathe_startup
 User=pi
 
 # Useful during debugging; remove it once the service is working
-StandardOutput=console
+# StandardOutput=console
 
 [Install]
 WantedBy=multi-user.target
