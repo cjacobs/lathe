@@ -1,7 +1,5 @@
 #! /bin/sh
 
-set -x
-
 ### BEGIN INIT INFO
 # Provides:          lathe
 # Required-Start:    $remote_fs $syslog
@@ -10,6 +8,8 @@ set -x
 # Default-Stop:      0 1 6
 # Short-Description: Simple script to start a program at boot
 ### END INIT INFO
+
+set -x
 
 cd /home/pi/lathe/Code
 
