@@ -1,3 +1,16 @@
+## To install:
+##
+## sudo cp lathe.service /etc/systemd/system
+##
+## to start manually:
+## sudo systemctl start lathe
+##
+## to stop:
+## sudo systemctl stop lathe
+##
+## to install so it starts automatically:
+## sudo systemctl enable lathe
+
 [Unit]
 Description=lathe keepalive daemon
 
