@@ -11,6 +11,6 @@
 
 cd /home/pi/lathe/Code
 
-python lathe.py knobs &
+/home/pi/miniconda3/bin/python lathe.py knobs &
 
 exit 0
