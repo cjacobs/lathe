@@ -296,8 +296,11 @@ def run_with_knobs(lathe):
     speed_index = [0, 0]
     motion_dir = [0, 0]
     events_per_step = [0, 0]
+    steps_per_sec = [0, 0]
 
     def move(dir, amount):
+        nonlocal speed_index, motion_dir, steps_per_sec, events_per_step
+
         # dir in [0, 1], 0 == left, 1 == right
         if mode == ABSOLUTE:
             if amount:
