@@ -371,7 +371,7 @@ def run_with_knobs(lathe):
         x, y = 0, 0
         with lock:
             x, y = move_amount
-            move_amount = (0, 0)
+            move_amount = [0, 0]
 
         if mode == SPEED:
             if events_per_step[LEFT] != 0 and count % events_per_step[LEFT] == 0:
