@@ -299,7 +299,7 @@ def run_with_knobs(lathe):
     steps_per_sec = [0, 0]
 
     def move(dir, amount):
-        nonlocal speed_index, motion_dir, steps_per_sec, events_per_step
+        nonlocal speed_index, motion_dir, events_per_step
 
         # dir in [0, 1], 0 == left, 1 == right
         if mode == ABSOLUTE:
@@ -322,11 +322,11 @@ def run_with_knobs(lathe):
                 motion_dir[dir] = 0
 
             speed = MAX_SPEED * pow(abs(speed_index[dir]) / max_speed_index, gamma)
-            steps_per_sec[dir] = speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
-            if steps_per_sec[dir] == 0:
+            steps_per_sec = speed / IN_PER_STEP # = (in / s) / (in/step) -> steps / s
+            if steps_per_sec == 0:
                 events_per_step[dir] = 0
             else:
-                events_per_step[dir] = int(1 / (period * steps_per_sec[dir]))
+                events_per_step[dir] = int(1 / (period * steps_per_sec))
 
             print("speed_index: {}\tsteps_per_sec: {}\tspeed: {}\tevents_per_step: {}".format(speed_index, speed, steps_per_sec, events_per_step))
 
@@ -350,6 +350,7 @@ def run_with_knobs(lathe):
         nonlocal mode, speed_index
         if state: # button-up
             speed_index = [0, 0]
+            events_per_step = [0, 0]
             if mode == ABSOLUTE:
                 mode = SPEED
             else:
@@ -362,7 +363,7 @@ def run_with_knobs(lathe):
     knobs.add_knob_callback(knobs.LEFT_BUTTON, button_l)
     knobs.add_knob_callback(knobs.RIGHT_BUTTON, button_r)
 
-    def task_func(count):
+    def timer_func(count):
         nonlocal lock
         nonlocal mode, move_amount
         nonlocal events_per_step, motion_dir
@@ -382,7 +383,7 @@ def run_with_knobs(lathe):
             lathe.move(x, y)
         
     s = scheduler.scheduler(period)
-    s.run(scheduler.FOREVER, task_func)
+    s.run(scheduler.FOREVER, timer_func)
 
 
 if __name__ == '__main__':
