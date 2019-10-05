@@ -72,16 +72,12 @@ def right_step_callback(channel):
     val = gpio.input(DIR_R)    
     new_state = (RIGHT_STATE[0], val)
     right_step(new_state)
-    with lock:
-        RIGHT_STATE = new_state
 
 
 def right_dir_callback(channel):
     global RIGHT_STATE
     val = gpio.input(STEP_R)
-    with lock:
-        RIGHT_STATE = (val, RIGHT_STATE[1])
-    # right_step((val, RIGHT_STATE[1]))
+    right_step(new_state)
 
 
 def left_step(new_state):
@@ -126,6 +122,7 @@ def right_step(new_state):
         #         if RIGHT_VALID:
         #             amount = 1
         #         RIGHT_VALID = False
+        RIGHT_STATE = new_state
         if VERBOSE:
             print("right knob event: {} -> {} amount: {}, valid: {}".format(old_state, new_state, amount, RIGHT_VALID))
 
