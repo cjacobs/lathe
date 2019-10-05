@@ -105,12 +105,13 @@ def right_step(new_state):
     global RIGHT_VALID
     amount = 0
     with lock:
-        if RIGHT_STATE == (0, 1) and new_state == (0, 0):
-            amount = -1
-        elif RIGHT_STATE == (1, 0) and new_state == (0, 0):
-            amount = 1
-        else:
-            amount = 0        
+        old_state = RIGHT_STATE
+        # legal transitions: 1 and only 1 bit changes
+        if (RIGHT_STATE[0] == new_state[0]) != (RIGHT_STATE[1] == new_state[1]): # legal move
+            if new_state == (0, 0):
+                amount = old_state[0] - old_state[1]
+            RIGHT_STATE = new_state
+
         # if RIGHT_STATE == (0, 0):
         #     RIGHT_VALID = True # reset
         # elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
@@ -122,8 +123,8 @@ def right_step(new_state):
         #             amount = 1
         #         RIGHT_VALID = False
         if VERBOSE:
-            print("right knob event: {} -> {} valid: {}".format(RIGHT_STATE, new_state, RIGHT_VALID))
-        RIGHT_STATE = new_state
+            print("right knob event: {} -> {} valid: {}".format(old_state, new_state, RIGHT_VALID))
+        # RIGHT_STATE = new_state
     if amount:
         right_move(amount)
 
