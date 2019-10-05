@@ -15,13 +15,19 @@ except:
 
 # GPIO numbers, not pin numbers
 STEP_R = 12 # blue
-DIR_R = 16 # purple
+DIR_R = 16 # green
 SWITCH_R = 26 # orange
 
-STEP_L = 5 # brown
-DIR_L = 6 # red
-SWITCH_L = 13 # gray
+STEP_L = 5 # white/blue
+DIR_L = 6 # white/green
+SWITCH_L = 13 # white/orange
 
+# Vcc: white/brown
+# GND: brown
+
+
+
+verbose = False
 
 # (step, dir) sequence
 # (1, 1) at rest
@@ -89,9 +95,10 @@ def left_step(new_state):
                     amount = 1
                 LEFT_VALID = False
         LEFT_STATE = new_state
+    if verbose:
+        print("left knob event: {}".format(new_state))
     if amount:
         left_move(amount)
-
 
 def right_step(new_state):
     global RIGHT_STATE
@@ -109,6 +116,8 @@ def right_step(new_state):
                     amount = 1
                 RIGHT_VALID = False
         RIGHT_STATE = new_state
+    if verbose:
+        print("right knob event: {}".format(new_state))
     if amount:
         right_move(amount)
 
@@ -123,11 +132,15 @@ def right_move(dir):
 
 def left_button_callback(channel):
     dir = gpio.input(SWITCH_L)
+    if verbose:
+        print("left button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['left_button'](dir)
 
 
 def right_button_callback(channel):
     dir = gpio.input(SWITCH_R)
+    if verbose:
+        print("right button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['right_button'](dir)
 
 
@@ -177,12 +190,15 @@ def loop():
         time.sleep(0.1)
 
 if __name__ == '__main__':
+    global verbose
     parser = argparse.ArgumentParser()
     parser.add_argument('--knob_debounce_time', '-k', type=int, help='knob debounce time', default=1)
     parser.add_argument('--switch_debounce_time', '-s', type=int, help='switch debounce time', default=100)
+    parser.add_argument('--verbose', '-v', type=bool, action="store_true", help='print all events')
     
     args = parser.parse_args()
     init_knobs(args.knob_debounce_time, args.switch_debounce_time)
+    verbose = aregs.verbose
 
     def move_l(dir):
         print("LMove: {}".format(dir))
