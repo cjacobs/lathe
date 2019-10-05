@@ -27,7 +27,7 @@ SWITCH_L = 13 # white/orange
 
 
 
-verbose = False
+VERBOSE = False
 
 # (step, dir) sequence
 # (1, 1) at rest
@@ -95,7 +95,7 @@ def left_step(new_state):
                     amount = 1
                 LEFT_VALID = False
         LEFT_STATE = new_state
-    if verbose:
+    if VERBOSE:
         print("left knob event: {}".format(new_state))
     if amount:
         left_move(amount)
@@ -116,7 +116,7 @@ def right_step(new_state):
                     amount = 1
                 RIGHT_VALID = False
         RIGHT_STATE = new_state
-    if verbose:
+    if VERBOSE:
         print("right knob event: {}".format(new_state))
     if amount:
         right_move(amount)
@@ -132,14 +132,14 @@ def right_move(dir):
 
 def left_button_callback(channel):
     dir = gpio.input(SWITCH_L)
-    if verbose:
+    if VERBOSE:
         print("left button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['left_button'](dir)
 
 
 def right_button_callback(channel):
     dir = gpio.input(SWITCH_R)
-    if verbose:
+    if VERBOSE:
         print("right button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['right_button'](dir)
 
@@ -190,7 +190,6 @@ def loop():
         time.sleep(0.1)
 
 if __name__ == '__main__':
-    global verbose
     parser = argparse.ArgumentParser()
     parser.add_argument('--knob_debounce_time', '-k', type=int, help='knob debounce time', default=1)
     parser.add_argument('--switch_debounce_time', '-s', type=int, help='switch debounce time', default=100)
@@ -198,7 +197,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     init_knobs(args.knob_debounce_time, args.switch_debounce_time)
-    verbose = aregs.verbose
+    VERBOSE = args.verbose
 
     def move_l(dir):
         print("LMove: {}".format(dir))
