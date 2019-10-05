@@ -123,7 +123,7 @@ def right_step(new_state):
         #             amount = 1
         #         RIGHT_VALID = False
         if VERBOSE:
-            print("right knob event: {} -> {} valid: {}".format(old_state, new_state, RIGHT_VALID))
+            print("right knob event: {} -> {} amount: {}, valid: {}".format(old_state, new_state, amount, RIGHT_VALID))
         # RIGHT_STATE = new_state
     if amount:
         right_move(amount)
