@@ -69,15 +69,15 @@ def left_dir_callback(channel):
 
 def right_step_callback(channel):
     global RIGHT_STATE
-    val = gpio.input(DIR_R)    
-    new_state = (RIGHT_STATE[0], val)
+    new_dir = gpio.input(DIR_R)
+    new_state = (RIGHT_STATE[0], new_dir)
     right_step(new_state, "clk")
 
 
 def right_dir_callback(channel):
     global RIGHT_STATE
-    val = gpio.input(STEP_R)
-    new_state = (val, RIGHT_STATE[1])
+    new_clk = gpio.input(STEP_R)
+    new_state = (new_clk, RIGHT_STATE[1])
     right_step(new_state, "dir")
 
 
@@ -111,8 +111,11 @@ def right_step(new_state, sensor):
         # legal transitions: 1 and only 1 bit changes
         # if (old_state[0] == new_state[0]) != (old_state[1] == new_state[1]): # legal move
         if new_state == (0, 0):
-            amount = old_state[0] - old_state[1]
-
+            if RIGHT_VALID:
+                amount = old_state[0] - old_state[1]
+            RIGHT_VALID = False
+        elif new_state == (1, 1):
+            RIGHT_VALID = True
         # if RIGHT_STATE == (0, 0):
         #     RIGHT_VALID = True # reset
         # elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
