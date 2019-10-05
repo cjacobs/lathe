@@ -103,11 +103,11 @@ def left_step(new_state):
 def right_step(new_state):
     global RIGHT_STATE
     global RIGHT_VALID
-    amount = 0
+    amount = None
     with lock:
         old_state = RIGHT_STATE
         # legal transitions: 1 and only 1 bit changes
-        if (RIGHT_STATE[0] == new_state[0]) != (RIGHT_STATE[1] == new_state[1]): # legal move
+        if (old_state[0] == new_state[0]) != (old_state[1] == new_state[1]): # legal move
             if new_state == (0, 0):
                 amount = old_state[0] - old_state[1]
             RIGHT_STATE = new_state
