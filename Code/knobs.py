@@ -114,7 +114,7 @@ def right_step(new_state, sensor):
             if RIGHT_VALID:
                 amount = old_state[0] - old_state[1]
             RIGHT_VALID = False
-        elif new_state == (1, 1):
+        elif old_state == (1, 1):
             RIGHT_VALID = True
         # if RIGHT_STATE == (0, 0):
         #     RIGHT_VALID = True # reset
