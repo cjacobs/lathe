@@ -96,7 +96,7 @@ def left_step(new_state):
                 LEFT_VALID = False
         LEFT_STATE = new_state
     if VERBOSE:
-        print("left knob event: {}".format(new_state))
+        print("left knob event: {}, curr state: {}, valid: {}".format(new_state, LEFT_STATE, LEFT_VALID))
     if amount:
         left_move(amount)
 
@@ -117,7 +117,7 @@ def right_step(new_state):
                 RIGHT_VALID = False
         RIGHT_STATE = new_state
     if VERBOSE:
-        print("right knob event: {}".format(new_state))
+        print("right knob event: {}, curr state: {}, valid: {}".format(new_state, RIGHT_STATE, RIGHT_VALID))
     if amount:
         right_move(amount)
 
