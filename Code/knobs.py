@@ -72,13 +72,15 @@ def right_step_callback(channel):
     val = gpio.input(DIR_R)    
     new_state = (RIGHT_STATE[0], val)
     right_step(new_state)
-    RIGHT_STATE = new_state
+    with lock:
+        RIGHT_STATE = new_state
 
 
 def right_dir_callback(channel):
     global RIGHT_STATE
     val = gpio.input(STEP_R)
-    RIGHT_STATE = (val, RIGHT_STATE[1])
+    with lock:
+        RIGHT_STATE = (val, RIGHT_STATE[1])
     # right_step((val, RIGHT_STATE[1]))
 
 
@@ -110,9 +112,9 @@ def right_step(new_state):
     with lock:
         old_state = RIGHT_STATE
         # legal transitions: 1 and only 1 bit changes
-        if (old_state[0] == new_state[0]) != (old_state[1] == new_state[1]): # legal move
-            if new_state == (0, 0):
-                amount = old_state[0] - old_state[1]
+        # if (old_state[0] == new_state[0]) != (old_state[1] == new_state[1]): # legal move
+        if new_state == (0, 0):
+            amount = old_state[0] - old_state[1]
 
         # if RIGHT_STATE == (0, 0):
         #     RIGHT_VALID = True # reset
