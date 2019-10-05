@@ -105,16 +105,22 @@ def right_step(new_state):
     global RIGHT_VALID
     amount = 0
     with lock:
-        if RIGHT_STATE == (0, 0):
-            RIGHT_VALID = True
-        elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
-                if RIGHT_VALID:
-                    amount = -1
-                RIGHT_VALID = False
-        elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
-                if RIGHT_VALID:
-                    amount = 1
-                RIGHT_VALID = False
+        if RIGHT_STATE == (0, 1) and new_state == (0, 0):
+            amount = -1
+        elif RIGHT_STATE == (1, 0) and new_state == (0, 0):
+            amount = 1
+        else:
+            amount = 0        
+        # if RIGHT_STATE == (0, 0):
+        #     RIGHT_VALID = True # reset
+        # elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
+        #         if RIGHT_VALID:
+        #             amount = -1
+        #         RIGHT_VALID = False
+        # elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
+        #         if RIGHT_VALID:
+        #             amount = 1
+        #         RIGHT_VALID = False
         if VERBOSE:
             print("right knob event: {} -> {} valid: {}".format(RIGHT_STATE, new_state, RIGHT_VALID))
         RIGHT_STATE = new_state
