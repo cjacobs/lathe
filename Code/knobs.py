@@ -108,11 +108,9 @@ def right_step(new_state, sensor):
     amount = None
     with lock:
         old_state = RIGHT_STATE
-        # legal transitions: 1 and only 1 bit changes
-        # if (old_state[0] == new_state[0]) != (old_state[1] == new_state[1]): # legal move
-        if old_state == (1, 1):
+        if old_state == (0, 0):
             RIGHT_VALID = True
-        elif new_state == (0, 0):
+        elif new_state == (1, 1):
             if RIGHT_VALID:
                 amount = old_state[0] - old_state[1]
             RIGHT_VALID = False
