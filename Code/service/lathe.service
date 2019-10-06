@@ -39,7 +39,7 @@ Type=forking
 WorkingDirectory=/home/lathe/lathe/Code
 ## here we can set custom environment variables
 #Environment=AUTOSSH_GATETIME=0
-ExecStart=/home/lathe/lathe/Code/service/lathe_startup.sh
+ExecStart=/bin/bash /home/lathe/lathe/Code/service/lathe_startup.sh
 ExecStop=/usr/bin/killall -9 lathe_startup
 ### NOTE: you can have multiple `ExecStop` lines
 # ExecStop=/usr/bin/killall ssh
