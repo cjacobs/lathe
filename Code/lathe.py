@@ -333,7 +333,7 @@ def run_with_knobs(lathe):
         move(LEFT, -amount)
  
     def move_r(amount):
-        move(RIGHT, amount)
+        move(RIGHT, -amount)
 
     # Change steps per detent in ABSOLUTE mode
     def button_l(state):
@@ -346,7 +346,7 @@ def run_with_knobs(lathe):
 
     # toggle between ABSOLUTE and SPEED modes
     def button_r(state):
-        nonlocal mode, speed_index, motion_dir
+        nonlocal mode, speed_index, motion_dir, events_per_step
         if state: # button-up
             speed_index = [0, 0]
             events_per_step = [0, 0]
