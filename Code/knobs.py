@@ -122,17 +122,19 @@ def right_move(dir):
 
 
 def left_button_callback(channel):
-    dir = gpio.input(SWITCH_L)
-    if _verbose:
-        print("left button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks[LEFT_BUTTON](dir)
+    if channel == SWITCH_L:
+        dir = gpio.input(SWITCH_L)
+        if _verbose:
+            print("left button event, channel: {}, value: {}".format(channel, dir))
+        _callbacks[LEFT_BUTTON](dir)
 
 
 def right_button_callback(channel):
-    dir = gpio.input(SWITCH_R)
-    if _verbose:
-        print("right button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks[RIGHT_BUTTON](dir)
+    if channel == SWITCH_R:
+        dir = gpio.input(SWITCH_R)
+        if _verbose:
+            print("right button event, channel: {}, value: {}".format(channel, dir))
+        _callbacks[RIGHT_BUTTON](dir)
 
 
 def set_knob_callback(event, cb):
