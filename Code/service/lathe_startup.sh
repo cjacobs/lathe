@@ -11,7 +11,7 @@
 
 set -x
 
-echo "Starting lathe service..."
+echo "Starting lathe service... as" `whoami`
 
 cd ~/lathe/Code
 
