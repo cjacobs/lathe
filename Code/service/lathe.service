@@ -45,8 +45,7 @@ ExecStop=/usr/bin/killall -9 lathe_startup
 # ExecStop=/usr/bin/killall ssh
 # don't use 'nobody' if your script needs to access user files
 # (if User is not set the service will run as root)
-User=lathe
-Restart=always
+Restart=on-failure
 
 # Useful during debugging; remove it once the service is working
 # StandardOutput=console
