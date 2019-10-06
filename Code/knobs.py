@@ -34,12 +34,22 @@ _verbose = False
 # (0, 0) -> (0, 1) -> (1, 1) == right
 # when (1, 1) is seen, no output until (0, 0) is seen
 
-# state: last read (step, dir)
+LEFT = 0
+RIGHT = 1
+AXIS_NAMES = {LEFT : "left", RIGHT : "right"}
+
+CLK = 0
+DIR = 1
+VALID = 2
+
 lock = threading.Lock()
-_left_state = (1, 1)
-_left_valid = True
-_right_state = (1, 1)
-_right_valid = True
+
+# state: last read (clk, dir, valid)
+_state = [(1, 1, True), (1, 1, True)]
+# _left_state = (1, 1)
+# _left_valid = True
+# _right_state = (1, 1)
+# _right_valid = True
 
 # Callback ids
 LEFT_MOVE = 'left_move'
@@ -54,67 +64,52 @@ def null_cb(arg):
 _callbacks = { LEFT_MOVE : null_cb, RIGHT_MOVE : null_cb, LEFT_BUTTON : null_cb, RIGHT_BUTTON : null_cb }
 
 def left_step_callback(channel):
-    global _left_state
-    val = gpio.input(DIR_L)
-    left_step((_left_state[0], val), "clk")
+    global _state
+    prev_clk = _state[LEFT][CLK]
+    dir = gpio.input(DIR_L)
+    step(LEFT, (prev_clk, dir), "clk")
 
 
 def left_dir_callback(channel):
-    global _left_state
-    val = gpio.input(STEP_L)
-    left_step((val, _left_state[1]), "dir")
+    global _state
+    prev_dir = _state[LEFT][DIR]
+    clk = gpio.input(STEP_L)
+    step(RIGHT, (clk, prev_dir), "dir")
 
 
 def right_step_callback(channel):
-    global _right_state
-    new_dir = gpio.input(DIR_R)
-    new_state = (_right_state[0], new_dir)
-    right_step(new_state, "clk")
+    global _state
+    prev_clk = _state[RIGHT][CLK]
+    dir = gpio.input(DIR_R)
+    step(RIGHT, (prev_clk, dir), "clk")
 
 
 def right_dir_callback(channel):
-    global _right_state
-    new_clk = gpio.input(STEP_R)
-    new_state = (new_clk, _right_state[1])
-    right_step(new_state, "dir")
+    global _state
+    prev_dir = _state[RIGHT][DIR]
+    clk = gpio.input(STEP_R)
+    step(RIGHT, (clk, prev_dir), "dir")
 
 
-def left_step(new_state, signal):
-    global _left_state
-    global _left_valid
+def step(axis, new_state, signal):
+    global _state
     amount = None
     with lock:
-        old_state = _left_state
-        if old_state == (0, 0):
-            _left_valid = True
+        old_state = _state[axis]
+        if old_state[:2] == (0, 0):
+            valid = True
         elif new_state == (1, 1):
-            if _left_valid:
+            if old_state[VALID]:
                 amount = old_state[0] - old_state[1]
-            _left_valid = False
-        _left_state = new_state
+            valid = False
+        state[axis] = new_state
         if _verbose:
-            print("left knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, _left_valid, signal))
+            print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, _left_valid, signal))
     if amount:
-        left_move(amount)
-
-def right_step(new_state, signal):
-    global _right_state
-    global _right_valid
-    amount = None
-    with lock:
-        old_state = _right_state
-        if old_state == (0, 0):
-            _right_valid = True
-        elif new_state == (1, 1):
-            if _right_valid:
-                amount = old_state[0] - old_state[1]
-            _right_valid = False
-        _right_state = new_state
-        if _verbose:
-            print("right knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, _right_valid, signal))
-
-    if amount:
-        right_move(amount)
+        if axis == LEFT:
+            left_move(amount)
+        else:
+            right_move(amount)
 
 
 def left_move(dir):
@@ -129,17 +124,17 @@ def left_button_callback(channel):
     dir = gpio.input(SWITCH_L)
     if _verbose:
         print("left button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks['left_button'](dir)
+    _callbacks[LEFT_BUTTON](dir)
 
 
 def right_button_callback(channel):
     dir = gpio.input(SWITCH_R)
     if _verbose:
         print("right button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks['right_button'](dir)
+    _callbacks[RIGHT_BUTTON](dir)
 
 
-def add_knob_callback(event, cb):
+def set_knob_callback(event, cb):
     """
     move callbacks get called with a "direction" argument (0 or 1)
     button callbacks get called with a "state" argument (0 or 1)
@@ -174,15 +169,13 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.add_event_callback(SWITCH_R, right_button_callback)
 
 
+def idle():
+    pass`
+
+
 def loop():
     while True:
-        # step_l = gpio.input(STEP_L)
-        # dir_l = gpio.input(DIR_L)
-        # switch_l = gpio.input(SWITCH_L)
-        # step_r = gpio.input(STEP_R)
-        # dir_r = gpio.input(DIR_R)
-        # switch_r = gpio.input(SWITCH_R)
-        # print("{} {} {} {} {} {}".format(step_l, dir_l, switch_l, step_r, dir_r, switch_r))
+        idle()
         time.sleep(0.1)
 
 
@@ -208,8 +201,8 @@ if __name__ == '__main__':
     def button_r(dir):
         print("RButton: {}".format(dir))
 
-    add_knob_callback(LEFT_MOVE, move_l)
-    add_knob_callback(RIGHT_MOVE, move_r)
-    add_knob_callback(LEFT_BUTTON, button_l)
-    add_knob_callback(RIGHT_BUTTON, button_r)
+    set_knob_callback(LEFT_MOVE, move_l)
+    set_knob_callback(RIGHT_MOVE, move_r)
+    set_knob_callback(LEFT_BUTTON, button_l)
+    set_knob_callback(RIGHT_BUTTON, button_r)
     loop()

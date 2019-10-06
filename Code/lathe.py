@@ -357,17 +357,12 @@ def run_with_knobs(lathe):
                 mode = ABSOLUTE
             print("mode: {}".format("ABS" if mode == ABSOLUTE else "REL"))
     
-    knobs.init_knobs()
-    knobs.add_knob_callback(knobs.LEFT_MOVE, move_l)
-    knobs.add_knob_callback(knobs.RIGHT_MOVE, move_r)
-    knobs.add_knob_callback(knobs.LEFT_BUTTON, button_l)
-    knobs.add_knob_callback(knobs.RIGHT_BUTTON, button_r)
-
     def timer_func(count):
         nonlocal lock
         nonlocal mode, move_amount
         nonlocal events_per_step, motion_dir
 
+        # atomic copy-and-zero
         x, y = 0, 0
         with lock:
             x, y = move_amount
@@ -382,6 +377,12 @@ def run_with_knobs(lathe):
         if x or y:
             lathe.move(x, y)
         
+    knobs.init_knobs()
+    knobs.set_knob_callback(knobs.LEFT_MOVE, move_l)
+    knobs.set_knob_callback(knobs.RIGHT_MOVE, move_r)
+    knobs.set_knob_callback(knobs.LEFT_BUTTON, button_l)
+    knobs.set_knob_callback(knobs.RIGHT_BUTTON, button_r)
+
     s = scheduler.scheduler(period)
     s.run(scheduler.FOREVER, timer_func)
 
