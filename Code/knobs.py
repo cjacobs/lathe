@@ -172,6 +172,7 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.add_event_detect(SWITCH_R, gpio.BOTH, bouncetime=switch_debounce_time)
     gpio.add_event_callback(SWITCH_R, right_button_callback)
 
+
 def loop():
     while True:
         # step_l = gpio.input(STEP_L)
@@ -182,6 +183,7 @@ def loop():
         # switch_r = gpio.input(SWITCH_R)
         # print("{} {} {} {} {} {}".format(step_l, dir_l, switch_l, step_r, dir_r, switch_r))
         time.sleep(0.1)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -205,8 +207,8 @@ if __name__ == '__main__':
     def button_r(dir):
         print("RButton: {}".format(dir))
 
-    add_knob_callback('left_move', move_l)
-    add_knob_callback('right_move', move_r)
-    add_knob_callback('left_button', button_l)
-    add_knob_callback('right_button', button_r)
+    add_knob_callback(LEFT_MOVE, move_l)
+    add_knob_callback(RIGHT_MOVE, move_r)
+    add_knob_callback(LEFT_BUTTON, button_l)
+    add_knob_callback(RIGHT_BUTTON, button_r)
     loop()
