@@ -339,7 +339,7 @@ def run_with_knobs(lathe):
     # Change steps per detent in ABSOLUTE mode
     def button_l(state):
         nonlocal abs_speed
-        if state: # button-up
+        if state and (mode == ABSOLUTE): # button-up
             abs_speed *= 2
             if abs_speed > MAX_DIST_PER_MOVE:
                 abs_speed = 1
