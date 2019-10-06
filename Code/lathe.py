@@ -296,7 +296,6 @@ def run_with_knobs(lathe):
     speed_index = [0, 0]
     motion_dir = [0, 0]
     events_per_step = [0, 0]
-    steps_per_sec = [0, 0]
 
     def move(dir, amount):
         nonlocal speed_index, motion_dir, events_per_step
@@ -347,10 +346,11 @@ def run_with_knobs(lathe):
 
     # toggle between ABSOLUTE and SPEED modes
     def button_r(state):
-        nonlocal mode, speed_index
+        nonlocal mode, speed_index, motion_dir
         if state: # button-up
             speed_index = [0, 0]
             events_per_step = [0, 0]
+            motion_dir = [0, 0]
             if mode == ABSOLUTE:
                 mode = SPEED
             else:
