@@ -170,7 +170,7 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
 
 
 def idle():
-    pass`
+    pass
 
 
 def loop():
