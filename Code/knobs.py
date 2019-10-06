@@ -46,10 +46,6 @@ lock = threading.Lock()
 
 # state: last read (clk, dir, valid)
 _state = [(1, 1, True), (1, 1, True)]
-# _left_state = (1, 1)
-# _left_valid = True
-# _right_state = (1, 1)
-# _right_valid = True
 
 # Callback ids
 LEFT_MOVE = 'left_move'
@@ -105,7 +101,7 @@ def step(axis, new_state, signal):
             valid = False
         _state[axis] = (new_state[0], new_state[1], valid)
         if _verbose:
-            print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, _left_valid, signal))
+            print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, valid, signal))
     if amount:
         if axis == LEFT:
             left_move(amount)
@@ -152,6 +148,7 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_UP)
+    
     gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
@@ -165,10 +162,9 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.add_event_callback(DIR_L, left_dir_callback)
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
-    
-    gpio.add_event_detect(SWITCH_L, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_detect(SWITCH_L, gpio.RISING, bouncetime=switch_debounce_time)
     gpio.add_event_callback(SWITCH_L, left_button_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_detect(SWITCH_R, gpio.RISING, bouncetime=switch_debounce_time)
     gpio.add_event_callback(SWITCH_R, right_button_callback)
 
 
