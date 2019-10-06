@@ -11,8 +11,12 @@
 
 set -x
 
+echo "Starting lathe service..."
+
 cd ~/lathe/Code
 
 python lathe.py knobs &
+
+echo "  ..done"
 
 exit 0
