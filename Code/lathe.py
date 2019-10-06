@@ -330,8 +330,8 @@ def run_with_knobs(lathe):
             print("speed_index: {}\tsteps_per_sec: {}\tspeed: {}\tevents_per_step: {}".format(speed_index, speed, steps_per_sec, events_per_step))
 
     def move_l(amount):
-        move(LEFT, amount)
-                      
+        move(LEFT, -amount)
+ 
     def move_r(amount):
         move(RIGHT, amount)
 
@@ -423,7 +423,7 @@ if __name__ == '__main__':
         for x, y in coords:
             print(x, y)
             l.moveto(x, y)
-    elif args.command == 'carve':
+    elif args.command == 'test':
         halfwidth = 200
         contour = lambda x: x*x / halfwidth # parabola
         l.carve_contour(contour, -halfwidth, halfwidth, halfwidth, -halfwidth)
