@@ -96,10 +96,11 @@ def step(axis, new_state, signal):
     amount = None
     with lock:
         old_state = _state[axis]
+        valid = old_state[VALID]
         if old_state[:2] == (0, 0):
             valid = True
         elif new_state == (1, 1):
-            if old_state[VALID]:
+            if valid:
                 amount = old_state[0] - old_state[1]
             valid = False
         _state[axis] = (new_state[0], new_state[1], valid)
