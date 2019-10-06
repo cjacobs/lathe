@@ -25,9 +25,7 @@ SWITCH_L = 13 # white/orange
 # Vcc: white/brown
 # GND: brown
 
-
-
-VERBOSE = False
+_verbose = False
 
 # (step, dir) sequence
 # (1, 1) at rest
@@ -38,10 +36,10 @@ VERBOSE = False
 
 # state: last read (step, dir)
 lock = threading.Lock()
-LEFT_STATE = (1, 1)
-LEFT_VALID = True
-RIGHT_STATE = (1, 1)
-RIGHT_VALID = True
+_left_state = (1, 1)
+_left_valid = True
+_right_state = (1, 1)
+_right_valid = True
 
 # Callback ids
 LEFT_MOVE = 'left_move'
@@ -53,80 +51,66 @@ RIGHT_BUTTON = 'right_button'
 def null_cb(arg):
     pass
 
-_callbacks = { 'left_move' : null_cb, 'right_move' : null_cb, 'left_button' : null_cb, 'right_button' : null_cb }
+_callbacks = { LEFT_MOVE : null_cb, RIGHT_MOVE : null_cb, LEFT_BUTTON : null_cb, RIGHT_BUTTON : null_cb }
 
 def left_step_callback(channel):
-    global LEFT_STATE
+    global _left_state
     val = gpio.input(DIR_L)
-    left_step((LEFT_STATE[0], val))
+    left_step((_left_state[0], val), "clk")
 
 
 def left_dir_callback(channel):
-    global LEFT_STATE
+    global _left_state
     val = gpio.input(STEP_L)
-    left_step((val, LEFT_STATE[1]))
+    left_step((val, _left_state[1]), "dir")
 
 
 def right_step_callback(channel):
-    global RIGHT_STATE
+    global _right_state
     new_dir = gpio.input(DIR_R)
-    new_state = (RIGHT_STATE[0], new_dir)
+    new_state = (_right_state[0], new_dir)
     right_step(new_state, "clk")
 
 
 def right_dir_callback(channel):
-    global RIGHT_STATE
+    global _right_state
     new_clk = gpio.input(STEP_R)
-    new_state = (new_clk, RIGHT_STATE[1])
+    new_state = (new_clk, _right_state[1])
     right_step(new_state, "dir")
 
 
-def left_step(new_state):
-    global LEFT_STATE
-    global LEFT_VALID
-    amount = 0
+def left_step(new_state, signal):
+    global _left_state
+    global _left_valid
+    amount = None
     with lock:
-        if LEFT_STATE == (0, 0):
-            LEFT_VALID = True
-        elif LEFT_STATE == (0, 1) and new_state == (1, 1):
-                if LEFT_VALID:
-                    amount = -1
-                LEFT_VALID = False
-        elif LEFT_STATE == (1, 0) and new_state == (1, 1):
-                if LEFT_VALID:
-                    amount = 1
-                LEFT_VALID = False
-        if VERBOSE:
-            print("left knob event: {} -> {} valid: {}".format(LEFT_STATE, new_state, LEFT_VALID))
-        LEFT_STATE = new_state
+        old_state = _left_state
+        if old_state == (0, 0):
+            _left_valid = True
+        elif new_state == (1, 1):
+            if _left_valid:
+                amount = old_state[0] - old_state[1]
+            _left_valid = False
+        if _verbose:
+            print("left knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, _left_valid, signal))
     if amount:
         left_move(amount)
 
-def right_step(new_state, sensor):
-    global RIGHT_STATE
-    global RIGHT_VALID
+def right_step(new_state, signal):
+    global _right_state
+    global _right_valid
     amount = None
     with lock:
-        old_state = RIGHT_STATE
+        old_state = _right_state
         if old_state == (0, 0):
-            RIGHT_VALID = True
+            _right_valid = True
         elif new_state == (1, 1):
-            if RIGHT_VALID:
+            if _right_valid:
                 amount = old_state[0] - old_state[1]
-            RIGHT_VALID = False
-        # if RIGHT_STATE == (0, 0):
-        #     RIGHT_VALID = True # reset
-        # elif RIGHT_STATE == (0, 1) and new_state == (1, 1):
-        #         if RIGHT_VALID:
-        #             amount = -1
-        #         RIGHT_VALID = False
-        # elif RIGHT_STATE == (1, 0) and new_state == (1, 1):
-        #         if RIGHT_VALID:
-        #             amount = 1
-        #         RIGHT_VALID = False
-        RIGHT_STATE = new_state
-        if VERBOSE:
-            print("right knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, RIGHT_VALID, sensor))
+            _right_valid = False
+        _right_state = new_state
+        if _verbose:
+            print("right knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, _right_valid, signal))
 
     if amount:
         right_move(amount)
@@ -142,14 +126,14 @@ def right_move(dir):
 
 def left_button_callback(channel):
     dir = gpio.input(SWITCH_L)
-    if VERBOSE:
+    if _verbose:
         print("left button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['left_button'](dir)
 
 
 def right_button_callback(channel):
     dir = gpio.input(SWITCH_R)
-    if VERBOSE:
+    if _verbose:
         print("right button event, channel: {}, value: {}".format(channel, dir))
     _callbacks['right_button'](dir)
 
@@ -207,7 +191,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     init_knobs(args.knob_debounce_time, args.switch_debounce_time)
-    VERBOSE = args.verbose
+    _verbose = args.verbose
 
     def move_l(dir):
         print("LMove: {}".format(dir))
