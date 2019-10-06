@@ -102,7 +102,7 @@ def step(axis, new_state, signal):
             if old_state[VALID]:
                 amount = old_state[0] - old_state[1]
             valid = False
-        state[axis] = new_state
+        _state[axis] = new_state
         if _verbose:
             print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, _left_valid, signal))
     if amount:
