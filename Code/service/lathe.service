@@ -50,6 +50,8 @@ Restart=always
 
 # Useful during debugging; remove it once the service is working
 # StandardOutput=console
+StandardOutput=syslog
+StandardError=syslog
 
 [Install]
 WantedBy=default.target
