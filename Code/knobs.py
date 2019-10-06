@@ -91,6 +91,7 @@ def left_step(new_state, signal):
             if _left_valid:
                 amount = old_state[0] - old_state[1]
             _left_valid = False
+        _left_state = new_state
         if _verbose:
             print("left knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(old_state, new_state, amount, _left_valid, signal))
     if amount:
