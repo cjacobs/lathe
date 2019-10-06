@@ -11,8 +11,8 @@
 
 set -x
 
-cd /home/pi/lathe/Code
+cd ~/lathe/Code
 
-/home/pi/miniconda3/bin/python lathe.py knobs &
+python lathe.py knobs &
 
 exit 0
