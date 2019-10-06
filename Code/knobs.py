@@ -74,7 +74,7 @@ def left_dir_callback(channel):
     global _state
     prev_dir = _state[LEFT][DIR]
     clk = gpio.input(STEP_L)
-    step(RIGHT, (clk, prev_dir), "dir")
+    step(LEFT, (clk, prev_dir), "dir")
 
 
 def right_step_callback(channel):
