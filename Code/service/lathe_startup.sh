@@ -15,7 +15,7 @@ echo "Starting lathe service..."
 
 cd ~/lathe/Code
 
-python lathe.py knobs &
+/user/lathe/miniconda3/bin/python lathe.py knobs &
 
 echo "  ..done"
 
