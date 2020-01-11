@@ -46,10 +46,6 @@ lock = threading.Lock()
 
 # state: last read (clk, dir, valid)
 _state = [(1, 1, True), (1, 1, True)]
-# _left_state = (1, 1)
-# _left_valid = True
-# _right_state = (1, 1)
-# _right_valid = True
 
 # Callback ids
 LEFT_MOVE = 'left_move'
@@ -74,7 +70,7 @@ def left_dir_callback(channel):
     global _state
     prev_dir = _state[LEFT][DIR]
     clk = gpio.input(STEP_L)
-    step(RIGHT, (clk, prev_dir), "dir")
+    step(LEFT, (clk, prev_dir), "dir")
 
 
 def right_step_callback(channel):
@@ -96,15 +92,16 @@ def step(axis, new_state, signal):
     amount = None
     with lock:
         old_state = _state[axis]
+        valid = old_state[VALID]
         if old_state[:2] == (0, 0):
             valid = True
         elif new_state == (1, 1):
-            if old_state[VALID]:
+            if valid:
                 amount = old_state[0] - old_state[1]
             valid = False
-        state[axis] = new_state
+        _state[axis] = (new_state[0], new_state[1], valid)
         if _verbose:
-            print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, _left_valid, signal))
+            print("{} knob event: {} -> {} amount: {}, valid: {}, signal: {}".format(AXIS_NAMES[axis], old_state, new_state, amount, valid, signal))
     if amount:
         if axis == LEFT:
             left_move(amount)
@@ -121,17 +118,19 @@ def right_move(dir):
 
 
 def left_button_callback(channel):
-    dir = gpio.input(SWITCH_L)
-    if _verbose:
-        print("left button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks[LEFT_BUTTON](dir)
+    if channel == SWITCH_L:
+        dir = gpio.input(SWITCH_L)
+        if _verbose:
+            print("left button event, channel: {}, value: {}".format(channel, dir))
+        _callbacks[LEFT_BUTTON](dir)
 
 
 def right_button_callback(channel):
-    dir = gpio.input(SWITCH_R)
-    if _verbose:
-        print("right button event, channel: {}, value: {}".format(channel, dir))
-    _callbacks[RIGHT_BUTTON](dir)
+    if channel == SWITCH_R:
+        dir = gpio.input(SWITCH_R)
+        if _verbose:
+            print("right button event, channel: {}, value: {}".format(channel, dir))
+        _callbacks[RIGHT_BUTTON](dir)
 
 
 def set_knob_callback(event, cb):
@@ -149,6 +148,7 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.setup(STEP_L, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(DIR_L, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_L, gpio.IN, pull_up_down=gpio.PUD_UP)
+    
     gpio.setup(STEP_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(DIR_R, gpio.IN, pull_up_down=gpio.PUD_UP)
     gpio.setup(SWITCH_R, gpio.IN, pull_up_down=gpio.PUD_UP)
@@ -162,10 +162,9 @@ def init_knobs(knob_debounce_time=1, switch_debounce_time=100):
     gpio.add_event_callback(DIR_L, left_dir_callback)
     gpio.add_event_callback(DIR_R, right_dir_callback)
     
-    
-    gpio.add_event_detect(SWITCH_L, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_detect(SWITCH_L, gpio.RISING, bouncetime=switch_debounce_time)
     gpio.add_event_callback(SWITCH_L, left_button_callback)
-    gpio.add_event_detect(SWITCH_R, gpio.BOTH, bouncetime=switch_debounce_time)
+    gpio.add_event_detect(SWITCH_R, gpio.RISING, bouncetime=switch_debounce_time)
     gpio.add_event_callback(SWITCH_R, right_button_callback)
 
 
