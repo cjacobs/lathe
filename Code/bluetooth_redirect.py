@@ -64,7 +64,7 @@ class Redirector(object):
                 if not data:
                     break
                 self.serial.write(b''.join(data))
-            except bluetooth.btcommon.BluetoothError:
+            except bluetooth.btcommon.BluetoothError as msg:
                 self.log.error('{}'.format(msg))
                 # probably got disconnected
                 break
