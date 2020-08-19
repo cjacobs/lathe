@@ -10,9 +10,9 @@ import socket
 import sys
 import time
 import threading
-import serial
 
 import bluetooth
+import serial
 
 class Redirector(object):
     def __init__(self, serial_instance, socket, debug=False):
@@ -40,6 +40,10 @@ class Redirector(object):
                 data = self.serial.read(self.serial.in_waiting or 1)
                 if data:
                     self.write(b''.join(data))
+            except bluetooth.btcommon.BluetoothError as msg:
+                self.log.error('{}'.format(msg))
+                # probably got disconnected
+                break
             except socket.error as msg:
                 self.log.error('{}'.format(msg))
                 # probably got disconnected
@@ -60,6 +64,10 @@ class Redirector(object):
                 if not data:
                     break
                 self.serial.write(b''.join(data))
+            except bluetooth.btcommon.BluetoothError:
+                self.log.error('{}'.format(msg))
+                # probably got disconnected
+                break
             except socket.error as msg:
                 self.log.error('{}'.format(msg))
                 # probably got disconnected
@@ -97,7 +105,6 @@ if __name__ == '__main__':
              logging.DEBUG,
              logging.NOTSET)[args.verbosity]
     logging.basicConfig(level=logging.INFO)
-    #~ logging.getLogger('root').setLevel(logging.INFO)
     logging.getLogger('btredirect').setLevel(level)
 
     # connect to serial port
@@ -129,8 +136,8 @@ if __name__ == '__main__':
             client_socket, addr = server_socket.accept()
             logging.info('Accepted connection from {}:{}'.format(addr[0], addr[1]))
 
-            serial_port.rts = True # ???
-            serial_port.dtr = True # ???
+            # serial_port.rts = True # ???
+            # serial_port.dtr = True # ???
 
             # enter bluetooth <-> serial loop
             r = Redirector(serial_port, client_socket, args.verbosity > 0)
