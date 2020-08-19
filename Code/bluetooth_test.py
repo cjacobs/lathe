@@ -7,17 +7,15 @@ import time
 import bluetooth
 
 def handle_connection(client_sock):
-    # get ssid
-    client_sock.send('Hello')
-    print "Waiting for response..."
-    response = client_sock.recv(1024)
-    if response == '' :
-        return
-    print "response received"
-    print response
-    
-    return
-
+    try:
+        client_sock.send('Hello')
+        while True:
+            response = client_sock.recv(1024)
+            if response == '' :
+                return
+            print response
+    except OSError:
+        pass
 
 if __name__ == '__main__':
     try:
