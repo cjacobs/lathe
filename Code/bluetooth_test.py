@@ -16,6 +16,8 @@ def handle_connection(client_sock):
             print response
     except OSError:
         pass
+    except bluetooth.btcommon.BluetoothError:
+        pass
 
 if __name__ == '__main__':
     try:
