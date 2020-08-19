@@ -72,7 +72,6 @@ class Redirector(object):
         if self.alive:
             self.alive = False
             self.thread_read.join()
-            self.thread_poll.join()
 
 
 if __name__ == '__main__':
