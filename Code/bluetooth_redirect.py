@@ -14,6 +14,8 @@ import threading
 import bluetooth
 import serial
 
+UUID = 'b1220d4e-e38d-11ea-87d0-0242ac130003'
+
 class Redirector(object):
     def __init__(self, serial_instance, socket, debug=False):
         self.serial = serial_instance
@@ -149,6 +151,13 @@ if __name__ == '__main__':
     server_socket.listen(1)
     port = server_socket.getsockname()[1]
     logging.info("Bluetooth port: {}".format(port))
+
+    bluetooth.advertise_service(server_socket, "RedirectServer", service_id=UUID,
+                                service_classes=[UUID, bluetooth.SERIAL_PORT_CLASS],
+                                profiles=[bluetooth.SERIAL_PORT_PROFILE],
+                                # protocols=[bluetooth.OBEX_UUID]
+                                )
+
 
     while True:
         try:
