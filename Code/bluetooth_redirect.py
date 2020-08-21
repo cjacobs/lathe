@@ -32,30 +32,40 @@ class Redirector(object):
         
         self.writer()
 
+    # Read from serial port (if active)
     def reader(self):
         """loop forever and copy serial->socket"""
         self.log.debug('reader thread started')
         while self.alive:
-            try:
-                data = self.serial.read(self.serial.in_waiting or 1)
-                if data:
-                    self.write(b''.join(data))
-            except bluetooth.btcommon.BluetoothError as msg:
-                self.log.error('{}'.format(msg))
-                # probably got disconnected
-                break
-            except socket.error as msg:
-                self.log.error('{}'.format(msg))
-                # probably got disconnected
-                break
+            if self.serial:
+                try:
+                    data = self.serial.read(self.serial.in_waiting or 1)
+                    if data:
+                        self.write(b''.join(data))
+                except bluetooth.btcommon.BluetoothError as msg:
+                    self.log.error('Bluetooth error: {}'.format(msg))
+                    # probably got disconnected
+                    break
+                except socket.error as msg:
+                    self.log.error('Socket error: {}'.format(msg))
+                    # probably got disconnected
+                    break
+                except:
+                    self.log.error('Unknown error')
+                    raise
+            else:
+                time.sleep(1)
+
         self.alive = False
         self.log.debug('reader thread terminated')
 
+    # Write to bluetooth socket
     def write(self, data):
         """thread safe socket write with no data escaping. used to send telnet stuff"""
         with self._write_lock:
             self.socket.sendall(data)
 
+    # Write to serial port
     def writer(self):
         """loop forever and copy socket->serial"""
         while self.alive:
@@ -63,15 +73,23 @@ class Redirector(object):
                 data = self.socket.recv(1024)
                 if not data:
                     break
-                self.serial.write(b''.join(data))
+                if self.serial:
+                    self.serial.write(b''.join(data))
+                else:
+                    print(b''.join(data))
+                    # Maybe write over socket as well
+                    self.write(b''.join(data))
             except bluetooth.btcommon.BluetoothError as msg:
-                self.log.error('{}'.format(msg))
+                self.log.error('Bluetooth error: {}'.format(msg))
                 # probably got disconnected
                 break
             except socket.error as msg:
-                self.log.error('{}'.format(msg))
+                self.log.error('Socket error: {}'.format(msg))
                 # probably got disconnected
                 break
+            except:
+                self.log.error('Unknown error')
+                raise
         self.stop()
 
     def stop(self):
@@ -84,11 +102,8 @@ class Redirector(object):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(
-        description="Serial to bluetooth redirector.")
-
-    parser.add_argument('SERIALPORT')
-
+    parser = argparse.ArgumentParser(description="Serial to bluetooth redirector.")
+    parser.add_argument('SERIALPORT', default='ttyS0')
     parser.add_argument(
         '-v', '--verbose',
         dest='verbosity',
@@ -108,22 +123,26 @@ if __name__ == '__main__':
     logging.getLogger('btredirect').setLevel(level)
 
     # connect to serial port
-    serial_port = serial.serial_for_url(args.SERIALPORT, do_not_open=True)
-    serial_port.timeout = 3     # required so that the reader thread can exit
-    # reset control line as no _remote_ "terminal" has been connected yet
-    serial_port.dtr = False
-    serial_port.rts = False
+    if args.SERIALPORT == "TEST":
+        serial_port = None
+        logging.info("Test/echo mode")
+    else:
+        serial_port = serial.serial_for_url(args.SERIALPORT, do_not_open=True)
+        serial_port.timeout = 3     # required so that the reader thread can exit
+        # reset control line as no _remote_ "terminal" has been connected yet
+        serial_port.dtr = False
+        serial_port.rts = False
 
-    logging.info("Bluetooth to Serial redirector - type Ctrl-C / BREAK to quit")
+        logging.info("Bluetooth to Serial redirector - type Ctrl-C / BREAK to quit")
 
-    try:
-        serial_port.open()
-    except serial.SerialException as e:
-        logging.error("Could not open serial port {}: {}".format(serial_port.name, e))
-        sys.exit(1)
+        try:
+            serial_port.open()
+        except serial.SerialException as e:
+            logging.error("Could not open serial port {}: {}".format(serial_port.name, e))
+            sys.exit(1)
 
-    logging.info("Serving serial port: {}".format(serial_port.name))
-    initial_settings = serial_port.get_settings()
+        logging.info("Serving serial port: {}".format(serial_port.name))
+        initial_settings = serial_port.get_settings()
 
     server_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
     server_socket.bind(('', bluetooth.PORT_ANY))
@@ -148,11 +167,13 @@ if __name__ == '__main__':
                 logging.info('Disconnected')
                 r.stop()
                 client_socket.close()
-                serial_port.dtr = False
-                serial_port.rts = False
 
-                # Restore port settings
-                serial_port.apply_settings(initial_settings)
+                if serial_port:
+                    serial_port.dtr = False
+                    serial_port.rts = False
+
+                    # Restore port settings
+                    serial_port.apply_settings(initial_settings)
         except KeyboardInterrupt:
             sys.stdout.write('\n')
             break
